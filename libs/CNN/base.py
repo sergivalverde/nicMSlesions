@@ -126,10 +126,13 @@ def test_cascaded_model(model, test_x_data, options):
 
     # first network
     options['test_name'] = options['experiment'] + '_prob_0.nii.gz'
-    t1 = test_scan(model[0], test_x_data, options, save_nifti= True)
+
+    # only save the first iteration result if debug is True
+    save_nifti = True if options['debug'] is True else False
+    t1 = test_scan(model[0], test_x_data, options, save_nifti= save_nifti)
 
     # second network 
-    options['test_name'] = options['experiment'] + '_prob_1.nii.gz'
+    options['test_name'] = options['experiment'] + '_debug_prob_1.nii.gz'
     t2 = test_scan(model[1], test_x_data, options, save_nifti= True, candidate_mask = t1>0.8)
 
     # postprocess the output segmentation
@@ -137,7 +140,7 @@ def test_cascaded_model(model, test_x_data, options):
     scans = test_x_data.keys()
     flair_scans = [test_x_data[s]['FLAIR'] for s in scans]
     flair_image = load_nii(flair_scans[0])
-    options['test_name'] = options['experiment'] + '_out_CNN.nii.gz'
+    options['test_name'] = options['experiment'] + '_hard_seg.nii.gz'
     out_segmentation = post_process_segmentation(t2,
                                                  options,
                                                  save_nifti = True,
