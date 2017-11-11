@@ -210,7 +210,7 @@ Updating NicMSlesions to a new version can be done both via GUI and command line
 ![image](./gifs/check_updates.gif)
 
 
-Of course, more advances users can update the software pulling the latest version of the repository using: 
+Of course, more advanced users can update the software pulling the latest version from the repository using: 
 
 ```
 cd /where/nicMSlesions/lives
