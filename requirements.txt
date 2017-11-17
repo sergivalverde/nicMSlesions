@@ -11,7 +11,7 @@ matplotlib==2.0.2
 networkx==1.11
 nibabel==2.1.0
 nolearn==0.6.0
-nolearn-utils==0.3.1
+nolearn-utils==0.2.2
 numpy==1.12.1
 olefile==0.44
 Pillow==4.3.0

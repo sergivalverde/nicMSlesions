@@ -157,7 +157,7 @@ def cascade_model(options):
 
         if options['pretrained_model'] == 'baseline':
             # load default weights
-            print "> CNN: Loading pretrained weights from the default configuration"
+            print "> CNN: Loading pretrained weights from the default configuration!"
             current_folder = os.path.dirname(os.path.abspath(__file__))
             net1_w_def = os.path.join(current_folder, 'defaults', 'baseline', 'nets', 'model_1.pkl')
             net2_w_def = os.path.join(current_folder, 'defaults', 'baseline', 'nets', 'model_2.pkl')

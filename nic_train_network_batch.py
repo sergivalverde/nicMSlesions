@@ -109,7 +109,6 @@ train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp', options['ROI_
 
 
 options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
-options['net_verbose'] = 0
 options['load_weights'] = False
     
 # train the model for the current scan 

@@ -5,7 +5,7 @@ from nibabel import load as load_nii
 import nibabel as nib 
 from math import floor
 from operator import itemgetter
-import cPickle
+import cPickle as pickle
 import copy
 from build_model_nolearn import define_training_layers
 from operator import add
@@ -38,7 +38,7 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
 
     max_epochs = options['max_epochs']
     
-    print "> CNN:, loading training data for first model"
+    print "> CNN: loading training data for first model"
     X, Y = load_training_data(train_x_data, train_y_data, options)
     print '> CNN: train_x ', X.shape
 
