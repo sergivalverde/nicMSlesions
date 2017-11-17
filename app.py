@@ -715,8 +715,6 @@ class wm_seg:
         try:
             msg = self.test_queue.get(0)
             self.process_indicator.set('Done. See log for more details.')
-            self.write_to_test_console(msg + '\n')
-            self.write_to_console(msg + '\n')
             self.inferenceBtn['state'] = 'normal'
             self.trainingBtn['state'] = 'normal'
         except Queue.Empty:
