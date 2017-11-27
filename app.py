@@ -589,7 +589,7 @@ class wm_seg:
             print "Running configuration:"
             print "-----------------------"
             print "Inference model:", self.param_model_tag.get()
-            print "Inference folder:", self.param_training_folder.get(), "\n"
+            print "Inference folder:", self.param_test_folder.get(), "\n"
             
             print "Method info:"
             print "------------"

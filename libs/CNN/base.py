@@ -125,14 +125,14 @@ def test_cascaded_model(model, test_x_data, options):
         os.mkdir(exp_folder)
 
     # first network
-    options['test_name'] = options['experiment'] + '_prob_0.nii.gz'
+    options['test_name'] = options['experiment'] + '_debug_prob_0.nii.gz'
 
     # only save the first iteration result if debug is True
     save_nifti = True if options['debug'] is True else False
     t1 = test_scan(model[0], test_x_data, options, save_nifti= save_nifti)
 
     # second network 
-    options['test_name'] = options['experiment'] + '_debug_prob_1.nii.gz'
+    options['test_name'] = options['experiment'] + '_prob_1.nii.gz'
     t2 = test_scan(model[1], test_x_data, options, save_nifti= True, candidate_mask = t1>0.8)
 
     # postprocess the output segmentation
@@ -328,6 +328,7 @@ def load_test_patches(test_x_data, patch_size, batch_size, voxel_candidates = No
         selected_voxels = get_mask_voxels(voxel_candidates)
     
     # yield data for testing with size equal to batch_size
+    
     for i in range(0, len(selected_voxels), batch_size):
         c_centers = selected_voxels[i:i+batch_size]
         X = []
@@ -391,13 +392,20 @@ def test_scan(model, test_x_data, options, save_nifti= True, candidate_mask = No
     flair_scans = [test_x_data[s]['FLAIR'] for s in scans]
     flair_image = load_nii(flair_scans[0])
     seg_image = np.zeros_like(flair_image.get_data())
+    all_voxels = np.sum(flair_image.get_data() > 0)
 
+    if options['debug'] is True:
+            print "> DEBUG: Voxels to classify:", all_voxels
     
     # compute lesion segmentation in batches of size options['batch_size'] 
     for batch, centers in load_test_patches(test_x_data, options['patch_size'], options['batch_size'], candidate_mask):
+        if options['debug'] is True:
+            print "> DEBUG: testing current_batch:", batch.shape, 
         y_pred = model.predict_proba(np.squeeze(batch))
         [x, y, z] = np.stack(centers, axis=1)
         seg_image[x, y, z] = y_pred[:, 1]
+        if options['debug'] is True:
+            print "...done!"
 
     if save_nifti:
         out_scan = nib.Nifti1Image(seg_image, affine=flair_image.affine)

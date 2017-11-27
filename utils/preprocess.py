@@ -49,22 +49,31 @@ def parse_input_masks(current_folder, options):
             r_search = len([m.find(tag) for
                             tag in roi_tags if m.find(tag) >= 0]) > 0
 
+            # generate a new output image modality
+            # check for extra dimensions
+            input_image = np.squeeze(input_sequence.get_data())
             # roi
             if r_search is True:
                 # r_s = True
-                input_sequence.to_filename(
+                output_sequence = nib.Nifti1Image(input_image,
+                                                  affine=input_sequence.affine)
+                output_sequence.to_filename(
                     os.path.join(options['tmp_folder'], 'lesion.nii.gz'))
                 if options['debug']:
                     print "    --> ", m, "as ROI image"
             elif f_search is True:
                 f_s = True
-                input_sequence.to_filename(
+                output_sequence = nib.Nifti1Image(input_image,
+                                                  affine=input_sequence.affine)
+                output_sequence.to_filename(
                     os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'))
                 if options['debug']:
                     print "    --> ", m, "as FLAIR image"
             elif t1_search is True:
                 t1_s = True
-                input_sequence.to_filename(
+                output_sequence = nib.Nifti1Image(input_image,
+                                                  affine=input_sequence.affine)
+                output_sequence.to_filename(
                     os.path.join(options['tmp_folder'], 'T1.nii.gz'))
                 if options['debug']:
                     print "    --> ", m, "as T1 image"
