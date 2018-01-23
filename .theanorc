@@ -1,0 +1,19 @@
+[global]
+floatX = float32
+device = cuda0
+
+[lib]
+cnmem = 0
+
+[cuda]
+root=/usr/local/cuda-8.0
+
+[nvcc]
+optimizer_including=cudnn
+
+[blas]
+ldflags = -L/usr/lib -lopenblas
+
+#[nvcc]
+#optimizer_including=cudnna
+#flags = -D_FORCE_INLINES

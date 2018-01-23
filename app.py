@@ -29,11 +29,14 @@ from cnn_scripts import train_network, infer_segmentation, get_config
 
 
 class wm_seg:
-    def __init__(self, master):
+    def __init__(self, master, container):
 
         self.master = master
         # master.minsize(width=100, height=100)
         master.title("nicMSlesions")
+
+        # running on a container
+        self.container = container
 
         # gui attributes
         self.path = os.getcwd()
@@ -43,9 +46,10 @@ class wm_seg:
         self.list_train_pretrained_nets = []
         self.list_test_nets = []
 
-        # version_number
-        self.commit_version = subprocess.check_output(
-            ['git', 'rev-parse', 'HEAD'])
+        if self.container is False:
+            # version_number
+            self.commit_version = subprocess.check_output(
+                ['git', 'rev-parse', 'HEAD'])
 
         # queue and thread parameters
         self.train_task = None
@@ -456,7 +460,7 @@ class wm_seg:
                                                    'l_min'))
         self.param_t_bin.set(default_config.getfloat('postprocessing',
                                                      't_bin'))
-                
+
     def write_user_configuration(self):
         """
         write the configuration into a file
@@ -590,14 +594,14 @@ class wm_seg:
             print "-----------------------"
             print "Inference model:", self.param_model_tag.get()
             print "Inference folder:", self.param_test_folder.get(), "\n"
-            
+
             print "Method info:"
             print "------------"
             self.test_task = ThreadedTask(self.write_to_test_console,
                                           self.test_queue, mode='testing')
             self.test_task.start()
             self.master.after(100, self.process_container_queue)
-            
+
     def train_net(self):
         """
         - write the configuration to disk
@@ -624,7 +628,7 @@ class wm_seg:
 
             print "Method info:"
             print "------------"
-            
+
             self.train_task = ThreadedTask(self.write_to_console,
                                            self.test_queue,
                                            mode='training')
@@ -636,14 +640,14 @@ class wm_seg:
             check update version and propose to download it
 
             So far, a rudimentary mode is used to check the last version.
-            
+
             """
             # I have to force possible changes in code :(
 
             print "---------------------------------------"
             print "Updating software"
             print "current version:", self.commit_version
-            
+
             remote_commit = subprocess.check_output(['git', 'stash'])
             remote_commit = subprocess.check_output(['git', 'fetch'])
             remote_commit = subprocess.check_output(['git',
@@ -658,7 +662,7 @@ class wm_seg:
             else:
                 print "This software is already in the latest version"
             print "---------------------------------------"
-    def about_window(self): 
+    def about_window(self):
         """
         About window
         """
@@ -698,14 +702,15 @@ class wm_seg:
         license_label = Label(t, text=license_content)
         license_label.grid(row=5, column=1, padx=20, pady=20)
 
-        # check version and updates
-        version_number = Label(t, text="commit: " + self.commit_version)
-        version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
+        if self.container is False:
+            # check version and updates
+            version_number = Label(t, text="commit: " + self.commit_version)
+            version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
 
-        self.check_link = Button(t,
-                            text="Check for updates",
-                            command=self.check_update)
-        self.check_link.grid(row=7, column=1)
+            self.check_link = Button(t,
+                                text="Check for updates",
+                                command=self.check_update)
+            self.check_link.grid(row=7, column=1)
 
     def process_container_queue(self):
         """
@@ -775,7 +780,7 @@ class ThreadedTask(threading.Thread):
         sys.stdout.flush()
         self.queue.put(" ")
 '''
-        
+
 
 class ThreadedTask(threading.Thread):
     """
@@ -796,7 +801,7 @@ class ThreadedTask(threading.Thread):
         if self.mode == 'training':
             train_network(options)
         else:
-            infer_segmentation(options)            
+            infer_segmentation(options)
         self.queue.put(" ")
 
 
@@ -806,15 +811,20 @@ class ThreadedTask(threading.Thread):
         """
         try:
             if platform.system() == "Windows" :
-                subprocess.Popen("taskkill /F /T /PID %i" % os.getpid() , shell=True)  
-            else:     
+                subprocess.Popen("taskkill /F /T /PID %i" % os.getpid() , shell=True)
+            else:
                 os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
         except:
             os.kill(os.getpid(), signal.SIGTERM)
 
 
 if __name__ == '__main__':
+
+
+    # check if the application is running from docker
+    current_dir = os.getcwd()
+    container = True if current_dir == '/' else False
     root = Tk()
     root.resizable(width=False, height=False)
-    my_guy = wm_seg(root)
+    my_guy = wm_seg(root, container)
     root.mainloop()
