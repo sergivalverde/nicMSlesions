@@ -38,7 +38,6 @@ fi
 # check if the docker is running
 DOCKER_NAME='nicms_docker'
 DOCKER_RUNNING=`docker images | grep nicmslesions | wc -w`
-echo $DOCKER_RUNNING
 
 if [ $DOCKER_RUNNING -gt 0 ];
 then    nvidia-docker run -ti  \

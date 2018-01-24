@@ -1,20 +1,21 @@
 # ------------------------------------------------------------------------------------------------------------
-#   MS lesion segmentation pipeline 
+#   MS lesion segmentation pipeline
 # ---------------------------------
 #   - incorporates:
-#         - MRI identification 
+#         - MRI identification
 #         - registration
 #         - skull stripping
 #         - MS lesion segmentation training and testing using the CNN aproach of Valverde et al (NI2017)
-# 
+#
 #  Sergi Valverde 2017
-#  svalverde@eia.udg.edu 
+#  svalverde@eia.udg.edu
 # ------------------------------------------------------------------------------------------------------------
 
 import os
 import sys
 import platform
 import time
+import argparse
 import ConfigParser
 from utils.preprocess import preprocess_scan
 
@@ -32,6 +33,16 @@ print "# Neuroimage Computing Group                     #"
 print "# -------------------------------                #"
 print "##################################################\n"
 
+
+# load options from input
+parser = argparse.ArgumentParser()
+parser.add_argument('--docker',
+                    dest='docker',
+                    action='store_true')
+parser.set_defaults(docker=False)
+args = parser.parse_args()
+container = args.docker
+
 # link related libraries
 CURRENT_PATH = os.getcwd()
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
@@ -45,7 +56,7 @@ user_config = ConfigParser.RawConfigParser()
 user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 
 
-# read user's configuration file 
+# read user's configuration file
 options = load_options(default_config, user_config)
 options['tmp_folder'] = CURRENT_PATH + '/tmp'
 
@@ -74,15 +85,19 @@ else:
 from CNN.base import train_cascaded_model
 from CNN.build_model_nolearn import cascade_model
 
+if container:
+    options['train_folder'] = os.path.normpath('/data' + options['train_folder'])
+else:
+    options['train_folder'] = os.path.normpath(options['train_folder'])
+
 scan_list = os.listdir(options['train_folder'])
 scan_list.sort()
 
-options['train_folder'] = os.path.normpath(options['train_folder'])
 for scan in scan_list:
 
     total_time = time.time()
     preprocess_time = time.time()
-    
+
     # --------------------------------------------------
     # move things to a tmp folder before starting
     # --------------------------------------------------
@@ -93,16 +108,17 @@ for scan in scan_list:
 
     # preprocess scan
     preprocess_scan(current_folder, options)
-    
+
 
 # --------------------------------------------------
-# WM MS lesion training 
-# - configure net and train 
+# WM MS lesion training
+# - configure net and train
 # --------------------------------------------------
 
 seg_time = time.time()
 print "> CNN: Starting training session"
 # select training scans
+
 train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n) for m, n in zip(options['modalities'], options['x_names'])}
                 for f in scan_list}
 train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp', options['ROI_name']) for f in scan_list}
@@ -110,8 +126,8 @@ train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp', options['ROI_
 
 options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
 options['load_weights'] = False
-    
-# train the model for the current scan 
+
+# train the model for the current scan
 
 print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
 

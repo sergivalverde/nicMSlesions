@@ -12,6 +12,7 @@
 # --------------------------------------------------
 
 import ConfigParser
+import argparse
 import platform
 import subprocess
 import os
@@ -29,10 +30,17 @@ from cnn_scripts import train_network, infer_segmentation, get_config
 
 
 class wm_seg:
+    """
+    Simple GUI application
+    If the application inside a container, automatic updates are removed.
+
+    The application uses two frames (tabs):
+    - training
+    - testing
+    """
     def __init__(self, master, container):
 
         self.master = master
-        # master.minsize(width=100, height=100)
         master.title("nicMSlesions")
 
         # running on a container
@@ -51,11 +59,16 @@ class wm_seg:
             self.commit_version = subprocess.check_output(
                 ['git', 'rev-parse', 'HEAD'])
 
-        # queue and thread parameters
+        # queue and thread parameters. All processes are embedded
+        # inside threads to avoid freezing the application
         self.train_task = None
         self.test_task = None
         self.test_queue = Queue.Queue()
         self.train_queue = Queue.Queue()
+
+        # --------------------------------------------------
+        # parameters. Mostly from the config/*.cfg files
+        # --------------------------------------------------
 
         # data parameters
         self.param_training_folder = StringVar()
@@ -95,7 +108,7 @@ class wm_seg:
         # load the default configuration from the conf file
         self.load_default_configuration()
 
-        # notebook
+        # self frame (tabbed notebook)
         self.note = Notebook(self.master)
         self.note.pack()
 
@@ -111,9 +124,8 @@ class wm_seg:
         print "# Neuroimage Computing Group                     #"
         print "# -------------------------------                #"
         print "##################################################\n"
-
-
         print "Please select options for training or inference in the menu..."
+
         # --------------------------------------------------
         # training tab
         # --------------------------------------------------
@@ -130,10 +142,6 @@ class wm_seg:
         self.model_frame = LabelFrame(self.train_frame, text="CNN model:")
         self.model_frame.grid(row=5, columnspan=cl_s, sticky='WE',
                               padx=5, pady=5, ipadx=5, ipady=5)
-        # self.show_frame = LabelFrame(self.train_frame, text="Output:")
-        # self.show_frame.grid(row=7, columnspan=cl_s,
-        #                      sticky='WE',
-        #                     padx=5, pady=5, ipadx=5, ipady=5)
 
         # training options
         self.inFolderLbl = Label(self.tr_frame, text="Training folder:")
@@ -200,13 +208,7 @@ class wm_seg:
                                       *self.list_train_pretrained_nets)
         self.pretrainTxt.grid(row=5, column=5, sticky='E', padx=5, pady=5)
 
-        # text options
-        # self.command_out = Text(self.show_frame)
-        # self.command_out.grid(row=7, columnspan=7, sticky='W',
-        #                      padx=1, pady=1,
-        #                      ipadx=1, ipady=1)
-
-        # START button links to docker task
+        # START button links
         self.trainingBtn = Button(self.train_frame,
                                   state='disabled',
                                   text="Start training",
@@ -222,10 +224,6 @@ class wm_seg:
         self.test_model_frame = LabelFrame(self.test_frame, text="CNN model:")
         self.test_model_frame.grid(row=5, columnspan=cl_s, sticky='WE',
                                    padx=5, pady=5, ipadx=5, ipady=5)
-        # self.test_show_frame = LabelFrame(self.test_frame, text="Output:")
-        # self.test_show_frame.grid(row=7, columnspan=cl_s,
-        #                          sticky='WE',
-        #                          padx=5, pady=5, ipadx=5, ipady=5)
 
         # testing options
         self.test_inFolderLbl = Label(self.tt_frame, text="Testing folder:")
@@ -287,11 +285,6 @@ class wm_seg:
 
         self.test_pretrainTxt.grid(row=5, column=0, sticky='E', padx=5, pady=5)
 
-        # text options
-        #self.test_command_out = Text(self.test_show_frame)
-        # self.test_command_out.grid(row=7, columnspan=7, sticky='W',
-        #                           padx=1, pady=1,
-        #                           ipadx=1, ipady=1)
         # START button links to docker task
         self.inferenceBtn = Button(self.test_frame,
                                    state='disabled',
@@ -318,19 +311,21 @@ class wm_seg:
                                 padx=(1, 1),
                                 pady=1)
 
-        # docker state and so on...
+        # Processing state
         self.process_indicator = StringVar()
         self.process_indicator.set(' ')
         self.label_indicator = Label(master,
                                      textvariable=self.process_indicator)
         self.label_indicator.pack(side="left")
 
-        # master protocol to close things
+        # Closing processing events is implemented via
+        # a master protocol
         self.master.protocol("WM_DELETE_WINDOW", self.close_event)
 
     def parameter_window(self):
         """
-        setting other parameters
+        Setting other parameters using an emerging window
+        CNN parameters, CUDA device, post-processing....
 
         """
         t = Toplevel(self.master)
@@ -360,25 +355,11 @@ class wm_seg:
         # model parameters
         t_model = LabelFrame(t, text="Model:")
         t_model.grid(row=5, sticky="EW")
-        # layers_label = Label(t_model, text="Num of retrained layers:")
-        # layers_label.grid(row=5, sticky='W')
-        # layers_entry = Entry(t_model, textvariable=self.param_num_layers)
-        # layers_entry.grid(row=5, column=1, sticky="W")
-
-        # minth_label = Label(t_model, text="Min false positive probability:")
-        # minth_label.grid(row=6, sticky="W")
-        # minth_entry = Entry(t_model, textvariable=self.param_min_th)
-        # minth_entry.grid(row=6, column=1, sticky="W")
 
         maxepochs_label = Label(t_model, text="Max epochs:           ")
         maxepochs_label.grid(row=6, sticky="W")
         maxepochs_entry = Entry(t_model, textvariable=self.param_max_epochs)
         maxepochs_entry.grid(row=6, column=1, sticky="W")
-
-        # patchsize_label = Label(t_model, text="Patch size:")
-        # patchsize_label.grid(row=8, sticky="W")
-        # patchsize_entry = Entry(t_model, textvariable=self.param_patch_size)
-        # patchsize_entry.grid(row=8, column=1, sticky="W")
 
         trainsplit_label = Label(t_model, text="Validation %:")
         trainsplit_label.grid(row=7, sticky="W")
@@ -415,7 +396,9 @@ class wm_seg:
 
     def load_default_configuration(self):
         """
-        load the default configuration from /config/default
+        load the default configuration from /config/default.cfg
+        This method assign each of the configuration parameters to
+        class attributes
         """
 
         default_config = ConfigParser.SafeConfigParser()
@@ -438,16 +421,10 @@ class wm_seg:
         self.param_use_pretrained_model.set(default_config.get('train', 'full_train'))
         self.param_pretrained_model.set(default_config.get('train', 'pretrained_model'))
         self.param_inference_model.set("      ")
-        # self.param_num_layers.set(default_config.get('train', 'num_layers'))
 
         # model parameters
         self.param_net_folder = os.path.join(self.current_folder, 'nets')
         self.param_model_tag.set(default_config.get('model', 'name'))
-        # self.param_pretrained.set(default_config.get('model', 'pretrained'))
-        # self.param_min_th.set(default_config.getfloat('model', 'min_th'))
-        # self.param_patch_size.set(default_config.getint('model', 'patch_size'))
-        # self.param_weight_paths.set(default_config.get('model', 'weight_paths'))
-        # self.param_load_weights.set(default_config.get('model', 'load_weights'))
         self.param_train_split.set(default_config.getfloat('model', 'train_split'))
         self.param_max_epochs.set(default_config.getint('model', 'max_epochs'))
         self.param_patience.set(default_config.getint('model', 'patience'))
@@ -463,9 +440,10 @@ class wm_seg:
 
     def write_user_configuration(self):
         """
-        write the configuration into a file
+        write the configuration into config/configuration.cfg
         """
         user_config = ConfigParser.RawConfigParser()
+
         # dastaset parameters
         user_config.add_section('database')
         user_config.set('database', 'train_folder', self.param_training_folder.get())
@@ -482,16 +460,11 @@ class wm_seg:
         user_config.add_section('train')
         user_config.set('train', 'full_train', not(self.param_use_pretrained_model.get()))
         user_config.set('train', 'pretrained_model', self.param_pretrained_model.get())
-        # user_config.set('train', 'num_layers', self.param_num_layers.get())
 
         # model parameters
         user_config.add_section('model')
         user_config.set('model', 'name', self.param_model_tag.get())
         user_config.set('model', 'pretrained', self.param_pretrained)
-        # user_config.set('model', 'min_th', self.param_min_th.get())
-        # user_config.set('model', 'patch_size', self.param_patch_size.get())
-        # user_config.set('model', 'weight_paths', self.param_weight_paths.get())
-        # user_config.set('model', 'load_weights', self.param_load_weights.get())
         user_config.set('model', 'train_split', self.param_train_split.get())
         user_config.set('model', 'max_epochs', self.param_max_epochs.get())
         user_config.set('model', 'patience', self.param_patience.get())
@@ -512,10 +485,12 @@ class wm_seg:
 
     def load_training_path(self):
         """
-        load the training path from disk
+        Select training path from disk and write it.
+        If the app is run inside a container,
+        link the iniitaldir with /data
         """
-        fname = askdirectory()
-        #self.write_to_console(fname + '\n')
+        initialdir = '/data' if self.container else os.getcwd()
+        fname = askdirectory(initialdir=initialdir)
         if fname:
             try:
                 self.param_training_folder.set(fname)
@@ -527,10 +502,12 @@ class wm_seg:
 
     def load_testing_path(self):
         """
-        load the test path from disk
+        Selecet the inference path from disk and write it
+        If the app is run inside a container,
+        link the iniitaldir with /data
         """
-        fname = askdirectory()
-        #self.write_to_console(fname + '\n')
+        initialdir = '/data' if self.container else os.getcwd()
+        fname = askdirectory(initialdir=initialdir)
         if fname:
             try:
                 self.param_test_folder.set(fname)
@@ -542,7 +519,11 @@ class wm_seg:
 
     def update_pretrained_nets(self):
         """
-        get the different nets present to be used
+        get a list of the  different net configuration present in the system.
+        Each model configuration is represented by a folder containing the network
+        weights for each of the networks. The baseline net config is always
+        included by default
+
         """
         folders = os.listdir(self.param_net_folder)
         self.list_train_pretrained_nets = folders + ['baseline']
@@ -564,13 +545,11 @@ class wm_seg:
 
     def infer_segmentation(self):
         """
-        to doc
-        test funcionality of the docker container insed
+        Method implementing the inference process:
+        - Check network selection
         - write the configuration to disk
-        - open the docker container
-        - print
+        - Run the process on a new thread
         """
-
         net_state = self.param_inference_model.get()
         if net_state == '      ':
             self.write_to_test_console("ERROR: Please, select a network model ...\n")
@@ -580,15 +559,6 @@ class wm_seg:
             self.param_model_tag.set(self.param_inference_model.get())
             self.param_use_pretrained_model.set(False)
             self.write_user_configuration()
-            # self.write_to_test_console('-----------------------------------' +
-            # self.write_to_test_console('Configuration:' + '\n')
-            # self.write_to_test_console('Testing folder: ' +
-            #                           self.param_test_folder.get() + '\n')
-            # self.write_to_test_console('Net model: ' +
-            #                           self.param_model_tag.get() + '\n')
-            # self.write_to_test_console('-----------------------------------' +
-            #                           '\n\n')
-            #                           print "\n\n-------------------------------------------"
             print "\n-----------------------"
             print "Running configuration:"
             print "-----------------------"
@@ -604,22 +574,14 @@ class wm_seg:
 
     def train_net(self):
         """
+        Method implementing the training process:
         - write the configuration to disk
-        - open the docker container
-        - print
+        - Run the process on a new thread
         """
         self.trainingBtn['state'] = 'disable'
         if self.train_task is None:
             self.trainingBtn.update()
             self.write_user_configuration()
-            # self.write_to_console('-----------------------------------' + '\n')
-            # self.write_to_console('Configuration:' + '\n')
-            # self.write_to_console('Train model: ' +
-            #                       self.param_model_tag.get() + '\n')
-            # self.write_to_console('Training folder: ' +
-            #                       self.param_training_folder.get() + '\n')
-            # self.write_to_console('-----------------------------------' +
-            #                       '\n\n')
             print "\n-----------------------"
             print "Running configuration:"
             print "-----------------------"
@@ -637,13 +599,11 @@ class wm_seg:
 
     def check_update(self):
             """
-            check update version and propose to download it
-
+            check update version and propose to download it if differnt
             So far, a rudimentary mode is used to check the last version.
-
             """
-            # I have to force possible changes in code :(
 
+            # I have to discard possible local changes :(
             print "---------------------------------------"
             print "Updating software"
             print "current version:", self.commit_version
@@ -655,16 +615,20 @@ class wm_seg:
                                                      'origin/master'])
 
             if remote_commit != self.commit_version:
-                proc = subprocess.check_output(['git', 'pull', 'origin', 'master'])
+                proc = subprocess.check_output(['git', 'pull',
+                                                'origin', 'master'])
                 self.check_link.config(text="Updated")
                 self.commit_version = remote_commit
                 print "updated version:", self.commit_version
             else:
                 print "This software is already in the latest version"
             print "---------------------------------------"
+
     def about_window(self):
         """
-        About window
+        Window showing information about the software and
+        version number, including auto-update. If the application
+        is run from a container, then auto-update is disabled
         """
 
         def callback(event):
@@ -714,7 +678,8 @@ class wm_seg:
 
     def process_container_queue(self):
         """
-        to doc
+        Process the threading queue. When the threaded processes are
+        finished, buttons are reset and a message is shown in the app.
         """
         self.process_indicator.set('Running... please wait')
         try:
@@ -727,7 +692,7 @@ class wm_seg:
 
     def close_event(self):
         """
-        to doc
+        Stop the thread processes using OS related calls.
         """
         if self.train_task is not None:
             self.train_task.stop_process()
@@ -736,10 +701,13 @@ class wm_seg:
         os.system('cls' if platform.system == "Windows" else 'clear')
         root.destroy()
 
-'''
+
 class ThreadedTask(threading.Thread):
     """
-    to doc
+    Class implementing a threding process (training or inference)
+    - train network
+    - infer segmentation
+    - stop process
     """
     def __init__(self, print_func, queue, mode):
         threading.Thread.__init__(self)
@@ -750,52 +718,7 @@ class ThreadedTask(threading.Thread):
 
     def run(self):
         """
-        to doc
-        """
-        if self.mode == 'training':
-            filename = 'train.log'
-            with io.open(filename, 'wb') as writer, io.open(filename, 'rb', 1) as reader:
-                self.process = subprocess.Popen(['python', 'train_network.py'],
-                                                stdout=writer, shell=False)
-                while self.process.poll() is None:
-                    self.print_func(reader.read().decode('utf8'))
-                    time.sleep(1)
-
-                # Read the remaining
-                sys.stdout.write(reader.read())
-                sys.stdout.flush()
-        else:
-            filename = 'test.log'
-            with io.open(filename, 'wb') as writer, io.open(filename, 'rb', 1) as reader:
-                self.process = subprocess.Popen(['python',
-                                                 'infer_segmentation_batch.py'],
-                                                stdout=writer,
-                                                shell=False)
-                while self.process.poll() is None:
-                    self.print_func(reader.read().decode('utf8'))
-                    time.sleep(1)
-                # Read the remaining
-                sys.stdout.write(reader.read())
-
-        sys.stdout.flush()
-        self.queue.put(" ")
-'''
-
-
-class ThreadedTask(threading.Thread):
-    """
-    to doc
-    """
-    def __init__(self, print_func, queue, mode):
-        threading.Thread.__init__(self)
-        self.queue = queue
-        self.mode = mode
-        self.print_func = print_func
-        self.process = None
-
-    def run(self):
-        """
-        to doc
+        Call either the training and testing scripts in cnn_scripts.py.
         """
         options = get_config()
         if self.mode == 'training':
@@ -804,10 +727,10 @@ class ThreadedTask(threading.Thread):
             infer_segmentation(options)
         self.queue.put(" ")
 
-
     def stop_process(self):
         """
         stops a parent process and all child processes
+        OS dependant
         """
         try:
             if platform.system() == "Windows" :
@@ -819,12 +742,23 @@ class ThreadedTask(threading.Thread):
 
 
 if __name__ == '__main__':
+    """
+    main script. Check if the method is run inside a docker and then
+    call the main application
 
+    python app.py
 
-    # check if the application is running from docker
-    current_dir = os.getcwd()
-    container = True if current_dir == '/' else False
+    options:
+    --docker: set if run inside a docker (default is False)
+    """
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--docker',
+                        dest='docker',
+                        action='store_true')
+    parser.set_defaults(docker=False)
+    args = parser.parse_args()
     root = Tk()
     root.resizable(width=False, height=False)
-    my_guy = wm_seg(root, container)
+    my_guy = wm_seg(root, args.docker)
     root.mainloop()
