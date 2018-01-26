@@ -11,13 +11,13 @@ RUN apt-get update && apt-get install -y \
   python-dev \
   python-tk\
   git \
-  curl
+  curl \
+  emacs24
 
-# git CUDA_ROOT
+USER root
 ENV CUDA_ROOT /usr/local/cuda/bin
 
 # add /user
-USER root
 RUN useradd -ms /bin/bash user
 ENV HOME /home/user
 WORKDIR /home/user
@@ -29,7 +29,15 @@ RUN rm Miniconda-latest-Linux-x86_64.sh
 ENV PATH=$HOME/miniconda/bin:${PATH}
 RUN conda update -y conda
 
+# install CNN related packages
+ADD requirements.txt /requirements.txt
+RUN conda install numpy scipy mkl
+RUN conda install theano pygpu
+RUN pip install pip --upgrade
+RUN pip install -r /requirements.txt
+
 # copy necessary files to container
+# USER user
 RUN mkdir $HOME/src
 ENV PATH=$HOME/src:${PATH}
 ADD .theanorc $HOME/.theanorc
@@ -39,17 +47,7 @@ ADD config $HOME/src/config
 ADD libs $HOME/src/libs
 ADD logonic.png $HOME/src/logonic.png
 ADD nets $HOME/src/nets
-ADD requirements.txt $HOME/src/requirements.txt
 ADD utils $HOME/src/utils
 ADD nic_train_network_batch.py $HOME/src/
 ADD nic_infer_segmentation_batch.py $HOME/src/
-
-# install CNN related packages
-RUN conda install numpy scipy mkl
-RUN conda install theano pygpu
-RUN pip install pip --upgrade
-RUN pip install -r $HOME/src/requirements.txt
-
-# run the main application
-USER user
 WORKDIR $HOME/src
