@@ -45,7 +45,6 @@ ADD app.py $HOME/src/app.py
 ADD cnn_scripts.py $HOME/src/cnn_scripts.py
 ADD config $HOME/src/config
 ADD libs $HOME/src/libs
-ADD logonic.png $HOME/src/logonic.png
 ADD nets $HOME/src/nets
 ADD utils $HOME/src/utils
 ADD nic_train_network_batch.py $HOME/src/
