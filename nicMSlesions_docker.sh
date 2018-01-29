@@ -40,16 +40,17 @@ DOCKER_NAME='nicms_docker'
 DOCKER_RUNNING=`docker images | grep nicmslesions | wc -w`
 
 if [ $DOCKER_RUNNING -gt 0 ];
-then    nvidia-docker run -ti  \
+then
+    nvidia-docker run -ti  \
        -e DISPLAY=$DISPLAY \
        -v /tmp/.X11-unix:/tmp/.X11-unix \
        -v $DATAPATH:/data:rw \
-       nicmslesions
+       nicmslesions python -u app.py --docker |  tee log.txt
 else
     docker build -f Dockerfile -t nicmslesions . &&
     nvidia-docker run -ti  \
        -e DISPLAY=$DISPLAY \
        -v /tmp/.X11-unix:/tmp/.X11-unix \
        -v $DATAPATH:/data:rw \
-       nicmslesions
+       nicmslesions python -u app.py --docker | tee log.txt
 fi

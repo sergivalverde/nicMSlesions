@@ -52,6 +52,7 @@ def parse_input_masks(current_folder, options):
             # generate a new output image modality
             # check for extra dimensions
             input_image = np.squeeze(input_sequence.get_data())
+
             # roi
             if r_search is True:
                 # r_s = True

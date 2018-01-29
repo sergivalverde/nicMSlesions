@@ -15,11 +15,11 @@ then
     nvidia-docker run -ti  \
                   -v config:/home/user/config \
                   -v /:/data:rw \
-                  nicmslesions  python -u nic_train_network_batch.py --docker
+                  nicmslesions python -u nic_train_network_batch.py --docker | tee log.txt
 else
     docker build -f Dockerfile -t nicmslesions . &&
     nvidia-docker run -ti  \
                   -v config:/home/user/config \
                   -v /:/data:rw \
-                  nicmslesions python -u nic_train_network_batch.py --docker
+                  nicmslesions python -u nic_train_network_batch.py --docker | tee log.txt
 fi

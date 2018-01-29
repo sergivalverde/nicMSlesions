@@ -71,7 +71,7 @@ elif host_os == 'Windows':
     options['test_slices'] = 256
 else:
      "> ERROR: The OS system", host_os, "is not currently supported"
-    
+
 
 # --------------------------------------------------
 # net configuration
@@ -110,7 +110,7 @@ for scan in scan_list:
     # preprocess scans
     # --------------------------------------------------
     preprocess_scan(current_folder, options)
-    
+
     # --------------------------------------------------
     # WM MS lesion inference
     # --------------------------------------------------
@@ -128,7 +128,7 @@ for scan in scan_list:
     print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"
 
     print "> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec"
-    
+
     # remove tmps if not set
     if options['save_tmp'] is False:
         try:
@@ -147,4 +147,3 @@ for scan in scan_list:
             pass
 
 print "> INFO: All processes have been finished. Have a good day!"
-

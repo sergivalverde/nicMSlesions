@@ -1,14 +1,15 @@
+
 # ------------------------------------------------------------------------------------------------------------
-#   MS lesion segmentation pipeline 
+#   MS lesion segmentation pipeline
 # ---------------------------------
 #   - incorporates:
-#         - MRI identification 
+#         - MRI identification
 #         - registration
 #         - skull stripping
 #         - MS lesion segmentation training and testing using the CNN aproach of Valverde et al (NI2017)
-# 
+#
 #  Sergi Valverde 2017
-#  svalverde@eia.udg.edu 
+#  svalverde@eia.udg.edu
 # ------------------------------------------------------------------------------------------------------------
 
 import os
@@ -31,7 +32,7 @@ def get_config():
     user_config = ConfigParser.RawConfigParser()
     user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 
-    # read user's configuration file 
+    # read user's configuration file
     options = load_options(default_config, user_config)
     options['tmp_folder'] = CURRENT_PATH + '/tmp'
 
@@ -88,8 +89,8 @@ def train_network(options):
 
 
     # --------------------------------------------------
-    # WM MS lesion training 
-    # - configure net and train 
+    # WM MS lesion training
+    # - configure net and train
     # --------------------------------------------------
 
     seg_time = time.time()
@@ -103,7 +104,7 @@ def train_network(options):
     options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
     options['load_weights'] = False
 
-    # train the model for the current scan 
+    # train the model for the current scan
 
     print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
 
@@ -170,7 +171,7 @@ def infer_segmentation(options):
         # preprocess scans
         # --------------------------------------------------
         preprocess_scan(current_folder, options)
-        
+
         # --------------------------------------------------
         # WM MS lesion inference
         # --------------------------------------------------
@@ -188,7 +189,7 @@ def infer_segmentation(options):
         print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"
 
         print "> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec"
-        
+
         # remove tmps if not set
         if options['save_tmp'] is False:
             try:
@@ -207,4 +208,3 @@ def infer_segmentation(options):
                 pass
 
     print "> INFO: All processes have been finished. Have a good day!"
-
