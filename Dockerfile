@@ -47,6 +47,7 @@ ADD config $HOME/src/config
 ADD libs $HOME/src/libs
 ADD nets $HOME/src/nets
 ADD utils $HOME/src/utils
+ADD logonic.png $HOME/src/
 ADD nic_train_network_batch.py $HOME/src/
 ADD nic_infer_segmentation_batch.py $HOME/src/
 WORKDIR $HOME/src

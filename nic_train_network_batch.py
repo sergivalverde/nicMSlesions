@@ -45,7 +45,6 @@ container = args.docker
 
 # link related libraries
 CURRENT_PATH = os.getcwd()
-print "DEBUG:"
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 
 # load default options and update them with user information
