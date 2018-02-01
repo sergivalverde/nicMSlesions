@@ -50,6 +50,10 @@ def get_config():
         print "The OS system", os_host, "is not currently supported."
         exit()
 
+    # print options
+    if options['debug']:
+        print_options(options)
+
     return options
 
 

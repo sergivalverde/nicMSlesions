@@ -97,6 +97,8 @@ def print_options(options):
     """
 
     print "--------------------------------------------------"
+    print " configuration options:"
+    print "--------------------------------------------------"
     print " "
     keys = options.keys()
     for k in keys:

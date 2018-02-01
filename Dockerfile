@@ -17,10 +17,11 @@ RUN apt-get update && apt-get install -y \
 USER root
 ENV CUDA_ROOT /usr/local/cuda/bin
 
+
 # Install miniconda to /miniconda
 RUN curl -LO http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
 RUN bash Miniconda-latest-Linux-x86_64.sh -p /miniconda -b
-RUN rm Miniconda-latest-Linux-x86_64.sh
+RUN rm /Miniconda-latest-Linux-x86_64.sh
 ENV PATH=/miniconda/bin:${PATH}
 RUN conda update -y conda
 
@@ -31,17 +32,24 @@ RUN conda install theano pygpu
 RUN pip install pip --upgrade
 RUN pip install -r /requirements.txt
 
+# create a docker user
+RUN useradd  -ms /bin/bash docker
+ENV HOME /home/docker
+
+
 #copy necessary files to container
-RUN mkdir /src
-ENV PATH=/src:${PATH}
-ADD .theanorc /.theanorc
-ADD app.py /src/
-ADD cnn_scripts.py /src/
-ADD config /src/config
-ADD nets /src/nets
-ADD libs /src/libs
-ADD utils /src/utils
-ADD logonic.png /src/
-ADD nic_train_network_batch.py /src/
-ADD nic_infer_segmentation_batch.py /src/
-WORKDIR /src
+RUN mkdir $HOME/src
+ENV PATH=/$HOME/src:${PATH}
+ADD .theanorc $HOME/.theanorc
+ADD app.py $HOME/src/
+ADD cnn_scripts.py $HOME/src/
+ADD config $HOME/src/config
+ADD nets $HOME/src/nets
+ADD libs $HOME/src/libs
+ADD utils $HOME/src/utils
+ADD logonic.png $HOME/src/
+ADD nic_train_network_batch.py $HOME/src/
+ADD nic_infer_segmentation_batch.py $HOME/src/
+
+USER docker
+WORKDIR $HOME/src
