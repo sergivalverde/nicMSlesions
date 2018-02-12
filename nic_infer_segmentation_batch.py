@@ -12,6 +12,7 @@
 # ------------------------------------------------------------------------------------------------------------
 
 import os
+import argparse
 import sys
 import platform
 import time
@@ -33,6 +34,15 @@ print "##################################################\n"
 # link related libraries
 CURRENT_PATH = os.getcwd()
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
+
+# load options from input
+parser = argparse.ArgumentParser()
+parser.add_argument('--docker',
+                    dest='docker',
+                    action='store_true')
+parser.set_defaults(docker=False)
+args = parser.parse_args()
+container = args.docker
 
 # --------------------------------------------------
 # load default options and update them with user information
@@ -91,6 +101,12 @@ model = cascade_model(options)
 # - skull-stripping
 # - WM segmentation
 # --------------------------------------------------
+
+if container:
+    options['test_folder'] = os.path.normpath('/data' + options['test_folder'])
+else:
+    options['test_folder'] = os.path.normpath(options['test_folder'])
+
 scan_list = os.listdir(options['test_folder'])
 scan_list.sort()
 
