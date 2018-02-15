@@ -1,7 +1,7 @@
 import os
 import sys
 import signal
-import time 
+import time
 import shutil
 import numpy as np
 from lasagne.layers import InputLayer, DenseLayer, DropoutLayer, FeaturePoolLayer, BatchNormLayer, prelu
@@ -16,7 +16,7 @@ warnings.simplefilter("ignore")
 
 class Rotate_batch_Iterator(BatchIterator):
     """
-    handle class for on-the-fly data augmentation on batches. 
+    handle class for on-the-fly data augmentation on batches.
     Applying 90,180 and 270 degrees rotations and flipping
     """
     def transform(self, Xb, yb):
@@ -26,7 +26,7 @@ class Rotate_batch_Iterator(BatchIterator):
         bs = Xb.shape[0]
         indices = np.random.choice(bs, bs / 2, replace=False)
         x_da = Xb[indices]
-    
+
         # apply rotation to the input batch
         rotate_90 = x_da[:,:,:,::-1,:].transpose(0,1,2,4,3)
         rotate_180 = rotate_90[:,:,:,::-1,:].transpose(0,1,2,4,3)
@@ -45,14 +45,14 @@ class Rotate_batch_Iterator(BatchIterator):
         r_indices = np.random.randint(0,3,size=augmented_x.shape[0])
 
         Xb[indices] = np.stack([augmented_x[i,r_indices[i],:,:,:,:] for i in range(augmented_x.shape[0])])
-        
+
         return Xb, yb
 
 
 def cascade_model(options):
     """
     3D cascade model using Nolearn and Lasagne
-    
+
     Inputs:
     - model_options:
     - weights_path: path to where weights should be saved
@@ -67,9 +67,9 @@ def cascade_model(options):
     num_epochs = options['max_epochs']
     max_epochs_patience = options['patience']
     ps = options['patch_size'][0]
-    
+
     # save model to disk to re-use it. Create an experiment folder
-    # organize experiment 
+    # organize experiment
     if not os.path.exists(os.path.join(options['weight_paths'], options['experiment'])):
         os.mkdir(os.path.join(options['weight_paths'], options['experiment']))
     if not os.path.exists(os.path.join(options['weight_paths'], options['experiment'], 'nets')):
@@ -79,8 +79,6 @@ def cascade_model(options):
     # --------------------------------------------------
     # first model
     # --------------------------------------------------
-    
-
     layer1 = InputLayer(name='in', shape=(None, num_channels, ps, ps, ps))
     layer1 = prelu(batch_norm(Conv3DLayer(layer1, name='conv1_1', num_filters=32, filter_size=3, pad='same'), name = 'BN1'), name='p_relu1')
     layer1 = prelu(batch_norm(Conv3DLayer(layer1, name='conv1_2', num_filters=32, filter_size=3, pad='same'), name = 'BN2'), name='p_relu2')
@@ -95,12 +93,12 @@ def cascade_model(options):
     layer1 = DropoutLayer(layer1, name = 'l3drop', p=0.5)
     layer1 = prelu(DenseLayer(layer1, name='d_3', num_units = 64), name = 'p_relu_fn3')
     layer1 = DenseLayer(layer1, name = 'out', num_units = 2, nonlinearity=nonlinearities.softmax)
-   
-    # save weights 
+
+    # save weights
     net_model = 'model_1'
     net_weights = os.path.join(options['weight_paths'], options['experiment'], 'nets',  net_model + '.pkl' )
     net_history  = os.path.join(options['weight_paths'], options['experiment'], 'nets', net_model + '_history.pkl')
-    
+
     net1 =  NeuralNet(
         layers= layer1,
         objective_loss_function=objectives.categorical_crossentropy,
@@ -114,7 +112,7 @@ def cascade_model(options):
         max_epochs= num_epochs,
         train_split=TrainSplit(eval_size= train_split_perc),
     )
-    
+
     # --------------------------------------------------
     # second model
     # --------------------------------------------------
@@ -134,11 +132,11 @@ def cascade_model(options):
     layer2 = prelu(DenseLayer(layer2, name='d_3', num_units = 64), name = 'p_relu_fn3')
     layer2 = DenseLayer(layer2, name = 'out', num_units = 2, nonlinearity=nonlinearities.softmax)
 
-    # save weights 
+    # save weights
     net_model = 'model_2'
     net_weights2 = os.path.join(options['weight_paths'], options['experiment'], 'nets',  net_model + '.pkl' )
     net_history2  = os.path.join(options['weight_paths'], options['experiment'], 'nets', net_model + '_history.pkl')
-    
+
     net2 =  NeuralNet(
         layers= layer2,
         objective_loss_function=objectives.categorical_crossentropy,
@@ -168,7 +166,7 @@ def cascade_model(options):
             model = os.path.join(options['weight_paths'], options['experiment'])
             net1_w_def = os.path.join(model, 'nets', 'model_1.pkl')
             net2_w_def = os.path.join(model, 'nets', 'model_2.pkl')
-            
+
             if not os.path.exists(model):
                 shutil.copy(pretrained_model, model)
             else:
@@ -195,23 +193,23 @@ def cascade_model(options):
 
     net1.verbose = options['net_verbose']
     net2.verbose = options['net_verbose']
-        
+
     return [net1, net2]
 
 
 def define_training_layers(net, num_layers = None, number_of_samples = None):
     """
-    Define the number of layers to train and freeze the rest 
-    
+    Define the number of layers to train and freeze the rest
+
     inputs:
     - model: Neural network object net1 or net2
-    - number of layers to retrain 
-    - nunber of training samples 
+    - number of layers to retrain
+    - nunber of training samples
 
-    outputs 
-    - updated model 
+    outputs
+    - updated model
     """
-    
+
     # use the nunber of samples to choose the number of layers to retrain
     if number_of_samples is not None:
         if number_of_samples < 10000:
@@ -221,10 +219,10 @@ def define_training_layers(net, num_layers = None, number_of_samples = None):
         else:
             num_layers = 3
 
-    # check num_layers is set. set default value instead 
+    # check num_layers is set. set default value instead
     if (num_layers == 'None') and (number_of_samples is None):
         num_layers = 1
-    
+
 
     print "> CNN: freezing the first", 11 - num_layers, 'layers'
     # freeze parameters

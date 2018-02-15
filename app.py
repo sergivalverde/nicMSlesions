@@ -285,7 +285,7 @@ class wm_seg:
 
         self.test_pretrainTxt.grid(row=5, column=0, sticky='E', padx=5, pady=5)
 
-        # START button links to docker task
+        # START button links cto docker task
         self.inferenceBtn = Button(self.test_frame,
                                    state='disabled',
                                    text="Start inference",

@@ -5,6 +5,7 @@
 #
 # --------------------------------------------------
 
+
 def load_options(default_config, user_config):
     """
     map options from user input into the default config
