@@ -28,15 +28,20 @@ def load_options(default_config, user_config):
     options['test_folder'] = default_config.get('database', 'inference_folder')
     options['output_folder'] = '/output'
     options['current_scan'] = 'scan'
-    options['t1_name'] = default_config.get('database', 't1_name')
-    options['flair_name'] = default_config.get('database', 'flair_name')
-    options['flair_tags'] =  [el.strip() for el in default_config.get('database', 'flair_tags').split(',')]
-    options['t1_tags']  = [el.strip() for el in default_config.get('database', 't1_tags').split(',')]
-    options['roi_tags']  = [el.strip() for el in default_config.get('database', 'roi_tags').split(',')]
-    options['modalities'] = ['T1', 'FLAIR']
-    options['ROI_name'] = default_config.get('database', 'ROI_name')
+    # options['t1_name'] = default_config.get('database', 't1_name')
+    # options['flair_name'] = default_config.get('database', 'flair_name')
+    options['image_tags'] = [el.strip() for el in
+                             default_config.get('database',
+                                                'image_tags').split(',')]
+    options['roi_tags'] = [el.strip() for el in
+                           default_config.get('database',
+                                              'roi_tags').split(',')]
+    options['modalities'] = [el.strip().upper() for el in
+                             default_config.get('database',
+                                                'modalities').split(',')]
+    # options['ROI_name'] = default_config.get('database', 'ROI_name')
     options['debug'] = default_config.get('database', 'debug')
-    options['x_names'] = ['T1_brain.nii.gz', 'FLAIR_brain.nii.gz']
+    options['x_names'] = [m + '_brain.nii.gz' for m in options['modalities']]
     options['out_name'] = 'out_seg.nii.gz'
 
     # preprocessing

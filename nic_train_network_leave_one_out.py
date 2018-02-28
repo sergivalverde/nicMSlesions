@@ -130,7 +130,7 @@ for scan in scan_list:
                                         options['x_names'])}
                     for f in scan_list if f != scan}
     train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp',
-                                    options['ROI_name'])
+                                    'lesion.nii.gz')
                     for f in scan_list if f != scan}
 
     # organize the experiment: save models and traiining images inside a
@@ -165,11 +165,13 @@ for scan in scan_list:
     # --------------------------------------------------
     # test the current scan
     # --------------------------------------------------
-    test_x_data = {scan: {m: os.path.join(options['train_folder'], scan, n)
+    test_x_data = {scan: {m: os.path.join(options['train_folder'],
+                                          scan,
+                                          'tmp',
+                                          n)
                           for m, n in zip(options['modalities'],
                                           options['x_names'])}}
 
     out_seg = test_cascaded_model(model, test_x_data, options)
-
 
 print "> INFO: All processes have been finished. Have a good day!"

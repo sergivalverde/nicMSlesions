@@ -6,7 +6,8 @@
 #         - MRI identification
 #         - registration
 #         - skull stripping
-#         - MS lesion segmentation training and testing using the CNN aproach of Valverde et al (NI2017)
+#         - MS lesion segmentation training and testing using the CNN aproach
+#           of Valverde et al (NI2017)
 #
 #  Sergi Valverde 2017
 #  svalverde@eia.udg.edu
@@ -15,13 +16,13 @@
 import os
 import sys
 import platform
-import time, ConfigParser
-import numpy as np
-import nibabel as nib
+import time
+import ConfigParser
 from utils.preprocess import preprocess_scan
-from utils.load_options import *
+from utils.load_options import load_options, print_options
 CURRENT_PATH = os.getcwd()
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
+
 
 def get_config():
     """
@@ -43,14 +44,24 @@ def get_config():
         options['robex_path'] = CURRENT_PATH + '/libs/linux/ROBEX/runROBEX.sh'
         options['test_slices'] = 256
     elif host_os == 'Windows':
-        options['niftyreg_path'] = os.path.normpath(os.path.join(CURRENT_PATH ,'libs','win','niftyreg'))
-        options['robex_path'] = os.path.normpath(os.path.join(CURRENT_PATH ,'libs','win','ROBEX','runROBEX.bat'))
+        options['niftyreg_path'] = os.path.normpath(
+            os.path.join(CURRENT_PATH,
+                         'libs',
+                         'win',
+                         'niftyreg'))
+
+        options['robex_path'] = os.path.normpath(
+            os.path.join(CURRENT_PATH,
+                         'libs',
+                         'win',
+                         'ROBEX',
+                         'runROBEX.bat'))
         options['test_slices'] = 256
     else:
-        print "The OS system", os_host, "is not currently supported."
+        print "The OS system", host_os, "is not currently supported."
         exit()
 
-    # print options
+    # print options when debugging
     if options['debug']:
         print_options(options)
 
@@ -61,7 +72,8 @@ def train_network(options):
     """
     Train the CNN network given the options passed as parameter
     """
-    # set GPU mode from the configuration file. So, this has to be updated before calling
+    # set GPU mode from the configuration file.
+    # So, this has to be updated before calling
     # the CNN libraries if the default config "~/.theanorc" has to be replaced.
     if options['mode'].find('cuda') == -1 and options['mode'].find('gpu') == -1:
         os.environ['THEANO_FLAGS']='mode=FAST_RUN,device=cpu,floatX=float32,optimizer=fast_compile'
@@ -78,7 +90,6 @@ def train_network(options):
     for scan in scan_list:
 
         total_time = time.time()
-        preprocess_time = time.time()
 
         # --------------------------------------------------
         # move things to a tmp folder before starting
@@ -86,11 +97,10 @@ def train_network(options):
 
         options['tmp_scan'] = scan
         current_folder = os.path.join(options['train_folder'], scan)
-        options['tmp_folder'] = os.path.normpath(os.path.join(current_folder,  'tmp'))
-
+        options['tmp_folder'] = os.path.normpath(os.path.join(current_folder,
+                                                              'tmp'))
         # preprocess scan
         preprocess_scan(current_folder, options)
-
 
     # --------------------------------------------------
     # WM MS lesion training
@@ -100,17 +110,21 @@ def train_network(options):
     seg_time = time.time()
     print "> CNN: Starting training session"
     # select training scans
-    train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n) for m, n in zip(options['modalities'], options['x_names'])}
+    train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
+                        for m, n in zip(options['modalities'],
+                                        options['x_names'])}
                     for f in scan_list}
-    train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp', options['ROI_name']) for f in scan_list}
-
+    train_y_data = {f: os.path.join(options['train_folder'],
+                                    f,
+                                    'tmp',
+                                    options['ROI_name']) for f in scan_list}
 
     options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
     options['load_weights'] = False
 
     # train the model for the current scan
 
-    print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
+    print "> CNN: training net with %d subjects" % (len(train_x_data.keys()))
 
     # --------------------------------------------------
     # initialize the CNN and train the classifier
@@ -184,30 +198,21 @@ def infer_segmentation(options):
         "> CNN:", scan, "running WM lesion segmentation"
         sys.stdout.flush()
         options['test_scan'] = scan
-        test_x_data = {scan: {'T1': os.path.join(options['tmp_folder'],
-                                                'T1_brain.nii.gz'),
-                            'FLAIR': os.path.join(options['tmp_folder'],
-                                                    'FLAIR_brain.nii.gz')}}
 
-        out_seg = test_cascaded_model(model, test_x_data, options)
+        test_x_data = {scan: {m: os.path.join(options['tmp_folder'], n)
+                              for m, n in zip(options['modalities'],
+                                              options['x_names'])}}
+
+        test_cascaded_model(model, test_x_data, options)
         print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"
-
         print "> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec"
 
         # remove tmps if not set
         if options['save_tmp'] is False:
             try:
-                copyfile(os.path.join(current_folder,
-                                    options['experiment'],
-                                    options['experiment'] +
-                                    '_out_CNN.nii.gz'),
-                        os.path.join(current_folder,
-                                    'out_seg_' +
-                                    options['experiment'] +
-                                    '.nii.gz'))
                 os.rmdir(options['tmp_folder'])
                 os.rmdir(os.path.join(options['current_folder'],
-                                    options['experiment']))
+                                      options['experiment']))
             except:
                 pass
 

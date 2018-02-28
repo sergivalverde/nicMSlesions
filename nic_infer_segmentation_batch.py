@@ -5,7 +5,7 @@
 #         - MRI identification
 #         - registration
 #         - skull stripping
-#         - MS lesion segmentation using the CNN aproach of Valverde et al (NI2017)
+#         - MS lesion segmentation using the CNN Valverde et al (NI2017)
 #
 #  Sergi Valverde 2017
 #  svalverde@eia.udg.edu
@@ -135,10 +135,10 @@ for scan in scan_list:
     "> CNN:", scan, "running WM lesion segmentation"
     sys.stdout.flush()
     options['test_scan'] = scan
-    test_x_data = {scan: {'T1': os.path.join(options['tmp_folder'],
-                                             'T1_brain.nii.gz'),
-                          'FLAIR': os.path.join(options['tmp_folder'],
-                                                'FLAIR_brain.nii.gz')}}
+
+    test_x_data = {scan: {m: os.path.join(options['tmp_folder'], n)
+                          for m, n in zip(options['modalities'],
+                                          options['x_names'])}}
 
     out_seg = test_cascaded_model(model, test_x_data, options)
     print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"

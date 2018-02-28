@@ -70,10 +70,21 @@ def cascade_model(options):
 
     # save model to disk to re-use it. Create an experiment folder
     # organize experiment
-    if not os.path.exists(os.path.join(options['weight_paths'], options['experiment'])):
-        os.mkdir(os.path.join(options['weight_paths'], options['experiment']))
-    if not os.path.exists(os.path.join(options['weight_paths'], options['experiment'], 'nets')):
-        os.mkdir(os.path.join(options['weight_paths'], options['experiment'], 'nets'))
+    if not os.path.exists(os.path.join(options['weight_paths'],
+                                       options['experiment'])):
+        os.mkdir(os.path.join(options['weight_paths'],
+                              options['experiment']))
+    if not os.path.exists(os.path.join(options['weight_paths'],
+                                       options['experiment'], 'nets')):
+        os.mkdir(os.path.join(options['weight_paths'],
+                              options['experiment'], 'nets'))
+    if options['debug']:
+        if not os.path.exists(os.path.join(options['weight_paths'],
+                                           options['experiment'],
+                                           '.train')):
+            os.mkdir(os.path.join(options['weight_paths'],
+                                  options['experiment'],
+                                  '.train'))
 
 
     # --------------------------------------------------

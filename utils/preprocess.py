@@ -8,8 +8,10 @@ import platform
 import nibabel as nib
 import numpy as np
 
+
 def get_mode(input_data):
     """
+    Get the stastical mode
     """
     (_, idx, counts) = np.unique(input_data,
                                  return_index=True,
@@ -23,74 +25,43 @@ def get_mode(input_data):
 def parse_input_masks(current_folder, options):
 
     """
-    identify t1-w and FLAIR masks parsing image name labels
+    identify input image masks parsing image name labels
 
     """
 
-    flair_tags = options['flair_tags']
-    t1_tags = options['t1_tags']
-    roi_tags = options['roi_tags']
-    f_s, t1_s, r_s = False, False, False
-
-    scan = options['tmp_scan']    
+    image_tags = options['image_tags'] + options['roi_tags']
+    modalities = options['modalities'] + ['lesion']
+    scan = options['tmp_scan']
     masks = os.listdir(current_folder)
+
     print "> PRE:", scan, "identifying input modalities"
+
+    found_modalities = 0
     for m in masks:
         if m.find('.nii') > 0:
-
             input_path = os.path.join(current_folder, m)
             input_sequence = nib.load(input_path)
+            # check first the input modalities
+            for mod, tag in zip(modalities, image_tags):
+                # find tag
+                if m.find(tag) >= 0:
+                    # generate a new output image modality
+                    # check for extra dimensions
+                    input_image = np.squeeze(input_sequence.get_data())
+                    output_sequence = nib.Nifti1Image(input_image,
+                                                      affine=input_sequence.affine)
+                    output_sequence.to_filename(
+                        os.path.join(options['tmp_folder'], mod + '.nii.gz'))
+                    if options['debug']:
+                        print "    --> ", m, "as", mod, "image"
 
-            # find tags
-            f_search = len([m.find(tag) for
-                            tag in flair_tags if m.find(tag) >= 0]) > 0
-            t1_search = len([m.find(tag) for
-                             tag in t1_tags if m.find(tag) >= 0]) > 0
-            r_search = len([m.find(tag) for
-                            tag in roi_tags if m.find(tag) >= 0]) > 0
-
-            # generate a new output image modality
-            # check for extra dimensions
-            input_image = np.squeeze(input_sequence.get_data())
-
-            # roi
-            if r_search is True:
-                # r_s = True
-                output_sequence = nib.Nifti1Image(input_image,
-                                                  affine=input_sequence.affine)
-                output_sequence.to_filename(
-                    os.path.join(options['tmp_folder'], 'lesion.nii.gz'))
-                if options['debug']:
-                    print "    --> ", m, "as ROI image"
-            elif f_search is True:
-                f_s = True
-                output_sequence = nib.Nifti1Image(input_image,
-                                                  affine=input_sequence.affine)
-                output_sequence.to_filename(
-                    os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'))
-                if options['debug']:
-                    print "    --> ", m, "as FLAIR image"
-            elif t1_search is True:
-                t1_s = True
-                output_sequence = nib.Nifti1Image(input_image,
-                                                  affine=input_sequence.affine)
-                output_sequence.to_filename(
-                    os.path.join(options['tmp_folder'], 'T1.nii.gz'))
-                if options['debug']:
-                    print "    --> ", m, "as T1 image"
-            else:
-                if options['debug']:
-                    print "    --> ", m, "not identified"
-                pass
+                    found_modalities += 1
+                    break
 
     # check that the minimum number of modalities are used
-    if f_s is False or t1_s is False:
+    if found_modalities < len(options['modalities']):
         print "> ERROR:", scan, \
             "does not contain all valid input modalities"
-        if f_search is False:
-            print "> ERROR:", scan, "FLAIR modality not found"
-        if t1_search is False: 
-            print "> ERROR:", scan, "T1 modality not found"
         sys.stdout.flush()
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
@@ -99,7 +70,7 @@ def parse_input_masks(current_folder, options):
 def register_masks(options):
     """
     - to doc
-    - moving T1-w images to FLAIR space
+    - moving all images to the FLAIR space
 
     """
 
@@ -114,17 +85,22 @@ def register_masks(options):
         print "> ERROR: The OS system", os_host, "is not currently supported."
 
     reg_aladin_path = os.path.join(options['niftyreg_path'], reg_exe)
-    try:
-        print "> PRE:", scan, "registering T1-w --> FLAIR"
-        subprocess.check_output([reg_aladin_path, '-ref',
-                        os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'),
-                        '-flo' , os.path.join(options['tmp_folder'], 'T1.nii.gz'),
-                        '-aff' , os.path.join(options['tmp_folder'], 'transf.txt'),
-                        '-res' , os.path.join(options['tmp_folder'], 'rT1.nii.gz')])
-    except:
-        print "> ERROR:", scan, "registering masks, quiting program."
-        time.sleep(1)
-        os.kill(os.getpid(), signal.SIGTERM)
+
+    for mod in options['modalities']:
+        if mod is 'FLAIR':
+            continue
+
+        try:
+            print "> PRE:", scan, "registering",  mod, " --> FLAIR"
+            subprocess.check_output([reg_aladin_path, '-ref',
+                                     os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'),
+                                     '-flo', os.path.join(options['tmp_folder'], mod + '_.nii.gz'),
+                                     '-aff', os.path.join(options['tmp_folder'], 'transf.txt'),
+                                     '-res', os.path.join(options['tmp_folder'], 'r' + mod + '.nii.gz')])
+        except:
+            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            time.sleep(1)
+            os.kill(os.getpid(), signal.SIGTERM)
 
 
 def skull_strip(options):
@@ -136,34 +112,43 @@ def skull_strip(options):
     output:
     - None
     """
+
+    print "DEBUG: ", options['modalities']
+
     scan = options['tmp_scan']
-    flair_im = os.path.join(options['tmp_folder'],
-                                             'FLAIR.nii.gz')
-    t1_im = os.path.join(options['tmp_folder'],
-                                          'rT1.nii.gz')
-    flair_st_im = os.path.join(options['tmp_folder'],
-                                                'FLAIR_brain.nii.gz')
-    t1_st_im = os.path.join(options['tmp_folder'],
-                                             'T1_brain.nii.gz')
+    t1_im = os.path.join(options['tmp_folder'], 'rT1.nii.gz')
+    t1_st_im = os.path.join(options['tmp_folder'], 'T1_brain.nii.gz')
 
     try:
-        print "> PRE:", scan, "skull_stripping input modalities"
+        print "> PRE:", scan, "skull_stripping the T1 modality"
         subprocess.check_output([options['robex_path'],
-                                 flair_im,
-                                 flair_st_im])
+                                 t1_im,
+                                 t1_st_im])
     except:
         print "> ERROR:", scan, "registering masks, quiting program."
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
 
-    # apply the same mask to T1-w to reduce computational time
+    brainmask = nib.load(t1_st_im).get_data() > 1
+    for mod in options['modalities']:
 
-    flair_mask = nib.load(flair_st_im)
-    t1_mask = nib.load(t1_im)
-    T1 = t1_mask.get_data()
-    T1[flair_mask.get_data() < 1] = 0
-    t1_mask.get_data()[:] = T1
-    t1_mask.to_filename(t1_st_im)
+        if mod is 'T1':
+            continue
+
+        # apply the same mask to the rest of modalities to reduce
+        # computational time
+
+        print '> PRE: ', scan, 'Applying skull mask to ', mod, 'image'
+        current_mask = os.path.join(options['tmp_folder'],
+                                    'r' + mod + '.nii.gz')
+        current_st_mask = os.path.join(options['tmp_folder'],
+                                       mod + '_brain.nii.gz')
+
+        mask = nib.load(current_mask)
+        mask_nii = mask.get_data()
+        mask_nii[brainmask == 0] = 0
+        mask.get_data()[:] = mask_nii
+        mask.to_filename(current_st_mask)
 
 
 def preprocess_scan(current_folder, options):
@@ -183,43 +168,31 @@ def preprocess_scan(current_folder, options):
     except:
         if os.path.exists(options['tmp_folder']) is False:
             print "> ERROR:",  scan, "I can not create tmp folder for", current_folder, "Quiting program."
-                
+
         else:
             pass
 
     # --------------------------------------------------
     # find modalities
     # --------------------------------------------------
-
-    if options['t1_name'] == 'None':
-        id_time = time.time()
-        parse_input_masks(current_folder, options)
-        print "> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec"
-    else:
-        try:
-            shutil.move(os.path.join(current_folder, options['t1_name']),
-                      os.path.join(options['tmp_folder'], 'T1.nii.gz'))
-            shutil.move(os.path.join(current_folder, options['flair_name']),
-                      os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'))
-        except:
-            print "> ERROR:", scan, options['t1_name'], \
-                'or', options['flair_name'], "do not appear to exist..\
-                Quiting program"
-            time.sleep(1)
-            os.kill(os.getpid(), signal.SIGTERM)
+    id_time = time.time()
+    parse_input_masks(current_folder, options)
+    print "> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec"
 
     # --------------------------------------------------
     # register modalities
     # --------------------------------------------------
-
     if options['register_modalities'] is True:
         reg_time = time.time()
         register_masks(options)
         print "> INFO:", scan, "elapsed time: ", round(time.time() - reg_time), "sec"
     else:
         try:
-            shutil.move(os.path.join(options['tmp_folder'], 'T1.nii.gz'),
-                      os.path.join(options['tmp_folder'], 'rT1.nii.gz'))
+            for mod in options['modalities']:
+                shutil.move(os.path.join(options['tmp_folder'],
+                                         mod + '.nii.gz'),
+                            os.path.join(options['tmp_folder'],
+                                         'r' + mod + '.nii.gz'))
         except:
             print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
@@ -235,10 +208,11 @@ def preprocess_scan(current_folder, options):
         print "> INFO:", scan, "elapsed time: ", round(time.time() - sk_time), "sec"
     else:
         try:
-            shutil.move(os.path.join(options['tmp_folder'], 'rT1.nii.gz'),
-                      os.path.join(options['tmp_folder'], 'T1_brain.nii.gz'))
-            shutil.move(os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'),
-                      os.path.join(options['tmp_folder'], 'FLAIR_brain.nii.gz'))
+            for mod in options['modalities']:
+                shutil.move(os.path.join(options['tmp_folder'],
+                                         'r' + mod + '.nii.gz'),
+                            os.path.join(options['tmp_folder'],
+                                         mod + '_brain.nii.gz'))
         except:
             print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
@@ -246,4 +220,3 @@ def preprocess_scan(current_folder, options):
 
     if options['skull_stripping'] is True and options['register_modalities'] is True:
         print "> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time)
-        

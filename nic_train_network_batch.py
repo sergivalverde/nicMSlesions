@@ -127,7 +127,7 @@ train_x_data = {f: {m: os.path.join(options['train_folder'], f, 'tmp', n)
                     for m, n in zip(options['modalities'], options['x_names'])}
                 for f in scan_list}
 train_y_data = {f: os.path.join(options['train_folder'], f, 'tmp',
-                                options['ROI_name'])
+                                'lesion.nii.gz')
                 for f in scan_list}
 
 
