@@ -87,14 +87,14 @@ def register_masks(options):
     reg_aladin_path = os.path.join(options['niftyreg_path'], reg_exe)
 
     for mod in options['modalities']:
-        if mod is 'FLAIR':
+        if mod == 'FLAIR':
             continue
 
         try:
             print "> PRE:", scan, "registering",  mod, " --> FLAIR"
             subprocess.check_output([reg_aladin_path, '-ref',
                                      os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'),
-                                     '-flo', os.path.join(options['tmp_folder'], mod + '_.nii.gz'),
+                                     '-flo', os.path.join(options['tmp_folder'], mod + '.nii.gz'),
                                      '-aff', os.path.join(options['tmp_folder'], 'transf.txt'),
                                      '-res', os.path.join(options['tmp_folder'], 'r' + mod + '.nii.gz')])
         except:
@@ -113,8 +113,6 @@ def skull_strip(options):
     - None
     """
 
-    print "DEBUG: ", options['modalities']
-
     scan = options['tmp_scan']
     t1_im = os.path.join(options['tmp_folder'], 'rT1.nii.gz')
     t1_st_im = os.path.join(options['tmp_folder'], 'T1_brain.nii.gz')
@@ -132,15 +130,16 @@ def skull_strip(options):
     brainmask = nib.load(t1_st_im).get_data() > 1
     for mod in options['modalities']:
 
-        if mod is 'T1':
+        if mod == 'T1':
             continue
 
         # apply the same mask to the rest of modalities to reduce
         # computational time
 
+        input_name = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
         print '> PRE: ', scan, 'Applying skull mask to ', mod, 'image'
         current_mask = os.path.join(options['tmp_folder'],
-                                    'r' + mod + '.nii.gz')
+                                    input_name)
         current_st_mask = os.path.join(options['tmp_folder'],
                                        mod + '_brain.nii.gz')
 
@@ -189,10 +188,11 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
+                out_scan = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
                 shutil.move(os.path.join(options['tmp_folder'],
                                          mod + '.nii.gz'),
                             os.path.join(options['tmp_folder'],
-                                         'r' + mod + '.nii.gz'))
+                                         out_scan))
         except:
             print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
