@@ -209,8 +209,9 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
+                input_scan = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
                 shutil.move(os.path.join(options['tmp_folder'],
-                                         'r' + mod + '.nii.gz'),
+                                         input_scan),
                             os.path.join(options['tmp_folder'],
                                          mod + '_brain.nii.gz'))
         except:

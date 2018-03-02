@@ -31,6 +31,7 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     # CNN1
     # ----------
 
+
     print "> CNN: loading training data for first model"
     X, Y, sel_voxels = load_training_data(train_x_data, train_y_data, options)
     print '> CNN: train_x ', X.shape
@@ -454,11 +455,11 @@ def test_scan(model,
     scans = test_x_data.keys()
     flair_scans = [test_x_data[s]['FLAIR'] for s in scans]
     flair_image = load_nii(flair_scans[0])
-    seg_image = np.zeros_like(flair_image.get_data())
+    seg_image = np.zeros_like(flair_image.get_data().astype('float32'))
     all_voxels = np.sum(candidate_mask) if candidate_mask is not None else np.sum(flair_image.get_data() > 0)
 
     if options['debug'] is True:
-            print "> DEBUG: Voxels to classify:", all_voxels
+            print "> DEBUG ", scans[0], "Voxels to classify:", all_voxels
 
     # compute lesion segmentation in batches of size options['batch_size']
     for batch, centers in load_test_patches(test_x_data,
@@ -469,7 +470,6 @@ def test_scan(model,
             print "> DEBUG: testing current_batch:", batch.shape,
 
         y_pred = model.predict_proba(np.squeeze(batch))
-        print "> DEBUG: preds:", np.max(y_pred[:, 0]), np.max(y_pred[:, 1])
         [x, y, z] = np.stack(centers, axis=1)
         seg_image[x, y, z] = y_pred[:, 1]
         if options['debug'] is True:
@@ -501,17 +501,17 @@ def select_voxels_from_previous_model(model, train_x_data, options):
     # evaluate training scans using the learned model and extract voxels with
     # probability higher than 0.5
 
-    seg_masks = [test_scan(model,
-                           dict(train_x_data.items()[s:s+1]),
-                           options, save_nifti=False)
-                 for s in range(len(scans))]
+    seg_masks = []
+    for scan, s in zip(train_x_data.keys(), range(len(scans))):
+        seg_mask = test_scan(model,
+                             dict(train_x_data.items()[s:s+1]),
+                             options, save_nifti=False)
+        seg_masks.append(seg_mask > 0.5)
 
-    # save intermediate files if debug is on
-
-    if options['debug']:
-        for mask, scan, in zip(seg_masks, train_x_data.keys()):
+        if options['debug']:
             flair = nib.load(train_x_data[scan]['FLAIR'])
-            tmp_seg = nib.Nifti1Image(mask, affine=flair.affine)
+            tmp_seg = nib.Nifti1Image(seg_mask,
+                                      affine=flair.affine)
             tmp_seg.to_filename(os.path.join(options['weight_paths'],
                                              options['experiment'],
                                              '.train',
@@ -523,7 +523,8 @@ def select_voxels_from_previous_model(model, train_x_data, options):
     flair_scans = [train_x_data[s]['FLAIR'] for s in scans]
     images = [load_nii(name).get_data() for name in flair_scans]
     images_norm = [(im.astype(dtype=np.float32) - im[np.nonzero(im)].mean()) / im[np.nonzero(im)].std() for im in images]
-    seg_mask = [im > 2 if np.sum(seg > 0.5) == 0 else seg > 0.5 for im, seg in zip(images_norm, seg_masks)]
+    seg_mask = [im > 2 if np.sum(seg) == 0 else seg
+                for im, seg in zip(images_norm, seg_masks)]
 
     return seg_mask
 

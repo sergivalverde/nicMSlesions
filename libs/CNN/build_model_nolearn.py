@@ -1,5 +1,4 @@
 import os
-import sys
 import signal
 import time
 import shutil
@@ -86,7 +85,6 @@ def cascade_model(options):
                                   options['experiment'],
                                   '.train'))
 
-
     # --------------------------------------------------
     # first model
     # --------------------------------------------------
@@ -110,18 +108,18 @@ def cascade_model(options):
     net_weights = os.path.join(options['weight_paths'], options['experiment'], 'nets',  net_model + '.pkl' )
     net_history  = os.path.join(options['weight_paths'], options['experiment'], 'nets', net_model + '_history.pkl')
 
-    net1 =  NeuralNet(
-        layers= layer1,
+    net1 = NeuralNet(
+        layers=layer1,
         objective_loss_function=objectives.categorical_crossentropy,
         batch_iterator_train=Rotate_batch_Iterator(batch_size=128),
-        update = updates.adadelta,
+        update=updates.adadelta,
         on_epoch_finished=[
             SaveWeights(net_weights, only_best=True, pickle=False),
             SaveTrainingHistory(net_history),
             EarlyStopping(patience=max_epochs_patience)],
-        verbose= options['net_verbose'],
-        max_epochs= num_epochs,
-        train_split=TrainSplit(eval_size= train_split_perc),
+        verbose=options['net_verbose'],
+        max_epochs=num_epochs,
+        train_split=TrainSplit(eval_size=train_split_perc),
     )
 
     # --------------------------------------------------
@@ -194,7 +192,6 @@ def cascade_model(options):
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
-
     if options['load_weights'] is True:
         print "> CNN: loading weights from", options['experiment'], 'configuration'
         net1.verbose = 0
@@ -208,7 +205,7 @@ def cascade_model(options):
     return [net1, net2]
 
 
-def define_training_layers(net, num_layers = None, number_of_samples = None):
+def define_training_layers(net, num_layers=None, number_of_samples=None):
     """
     Define the number of layers to train and freeze the rest
 
@@ -242,10 +239,14 @@ def define_training_layers(net, num_layers = None, number_of_samples = None):
     net.layers_['conv1_2'].params[net.layers_['conv1_2'].W].remove("trainable")
     net.layers_['conv2_1'].params[net.layers_['conv2_1'].W].remove("trainable")
     net.layers_['conv2_2'].params[net.layers_['conv2_2'].W].remove("trainable")
-    net.layers_['p_relu1'].params[net.layers_['p_relu1'].alpha].remove("trainable")
-    net.layers_['p_relu2'].params[net.layers_['p_relu2'].alpha].remove("trainable")
-    net.layers_['p_relu3'].params[net.layers_['p_relu3'].alpha].remove("trainable")
-    net.layers_['p_relu4'].params[net.layers_['p_relu4'].alpha].remove("trainable")
+    net.layers_['p_relu1'].params[
+        net.layers_['p_relu1'].alpha].remove("trainable")
+    net.layers_['p_relu2'].params[
+        net.layers_['p_relu2'].alpha].remove("trainable")
+    net.layers_['p_relu3'].params[
+        net.layers_['p_relu3'].alpha].remove("trainable")
+    net.layers_['p_relu4'].params[
+        net.layers_['p_relu4'].alpha].remove("trainable")
 
     if num_layers == 1:
         net.layers_['d_1'].params[net.layers_['d_1'].W].remove("trainable")
