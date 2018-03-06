@@ -56,7 +56,8 @@ user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 # read user's configuration file
 options = load_options(default_config, user_config)
 
-# set GPU mode from the configuration file. So, this has to be updated before calling
+# set GPU mode from the configuration file.
+# So, this has to be updated before calling
 # the CNN libraries if the default config "~/.theanorc" has to be replaced.
 if options['mode'].find('cuda') == -1 and options['mode'].find('gpu') == -1:
     os.environ['THEANO_FLAGS']='mode=FAST_RUN,device=cpu,floatX=float32,optimizer=fast_compile'
@@ -64,7 +65,7 @@ else:
     os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
 
 from CNN.base import test_cascaded_model
-from CNN.build_model_nolearn import cascade_model
+from CNN.build_model import cascade_model
 
 
 # set paths taking into account the host OS
@@ -80,7 +81,7 @@ elif host_os == 'Windows':
         os.path.join(CURRENT_PATH, 'libs', 'win', 'ROBEX', 'runROBEX.bat'))
     options['test_slices'] = 256
 else:
-     "> ERROR: The OS system", host_os, "is not currently supported"
+    "> ERROR: The OS system", host_os, "is not currently supported"
 
 
 # --------------------------------------------------

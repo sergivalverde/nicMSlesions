@@ -3,7 +3,7 @@ import numpy as np
 from nibabel import load as load_nii
 import nibabel as nib
 from operator import itemgetter
-from build_model_nolearn import define_training_layers
+from build_model import define_training_layers, fit_model
 from operator import add
 
 
@@ -46,20 +46,15 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
                                           number_of_samples=X.shape[0])
 
         num_iterations = options['max_epochs'] / 10
-        model[0].max_epochs = 10
         for it in range(num_iterations):
-            model[0].fit(X, Y)
-
-            # if early stopping happens exit training
-            last_valid_epoch = model[0].on_epoch_finished[2].best_valid_epoch
-            if (last_valid_epoch + options['patience']) < ((it + 1)*10):
-                break
-
+            model[0] = fit_model(model[0], X, Y, options,
+                                 initial_epoch=it*num_iterations)
             X, Y, sel_voxels = load_training_data(train_x_data,
                                                   train_y_data,
                                                   options)
     else:
-        model[0].fit(X, Y)
+        model[0] = fit_model(model[0], X, Y, options)
+
 
     # ----------
     # CNN2
@@ -81,23 +76,18 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
         num_iterations = options['max_epochs'] / 10
         model[1].max_epochs = 10
         for it in range(num_iterations):
-            model[1].fit(X, Y)
-
-            # if early stopping happens exit training
-            last_valid_epoch = model[1].on_epoch_finished[2].best_valid_epoch
-            if (last_valid_epoch + options['patience']) < ((it + 1)*10):
-                break
-
+            model[1] = fit_model(model[1], X, Y, options,
+                                 initial_epoch=it*num_iterations)
             X, Y, sel_voxels = load_training_data(train_x_data,
                                                   train_y_data,
                                                   options,
                                                   model=model[0],
                                                   selected_voxels=sel_voxels)
     else:
-        model[1].fit(X, Y)
+        model[1] = fit_model(model[1], X, Y, options)
 
-    model[0].max_epochs = options['max_epochs']
-    model[1].max_epochs = options['max_epochs']
+    # model[0].max_epochs = options['max_epochs']
+    # model[1].max_epochs = options['max_epochs']
 
     return model
 
@@ -145,7 +135,7 @@ def test_cascaded_model(model, test_x_data, options):
                    test_x_data,
                    options,
                    save_nifti=True,
-                   candidate_mask=t1>0.8)
+                   candidate_mask=(t1 > 0.8))
 
     # postprocess the output segmentation
     # obtain the orientation from the first scan used for testing
@@ -253,6 +243,17 @@ def load_training_data(train_x_data,
     return X, Y, selected_voxels
 
 
+def normalize_data(im, datatype=np.float32):
+    """
+    zero mean / 1 standard deviation image normalization
+
+    """
+    im = im.astype(dtype=datatype) - im[np.nonzero(im)].mean()
+    im = im / im[np.nonzero(im)].std()
+
+    return im
+
+
 def select_training_voxels(input_masks, threshold=2, datatype=np.float32):
     """
     Select voxels for training based on a intensity threshold
@@ -270,8 +271,7 @@ def select_training_voxels(input_masks, threshold=2, datatype=np.float32):
 
     # load images and normalize their intensities
     images = [load_nii(image_name).get_data() for image_name in input_masks]
-    images_norm = [(im.astype(dtype=datatype) - im[np.nonzero(im)].mean()) / im[np.nonzero(im)].std() for im in images]
-
+    images_norm = [normalize_data(im) for im in images]
     # select voxels with intensity higher than threshold
     rois = [image > threshold for image in images_norm]
     return rois
@@ -301,7 +301,7 @@ def load_train_patches(x_data,
 
     # load images and normalize their intensties
     images = [load_nii(name).get_data() for name in x_data]
-    images_norm = [(im.astype(dtype=datatype) - im[np.nonzero(im)].mean()) / im[np.nonzero(im)].std() for im in images]
+    images_norm = [normalize_data(im) for im in images]
 
     # load labels
     lesion_masks = [load_nii(name).get_data().astype(dtype=np.bool)
@@ -322,14 +322,28 @@ def load_train_patches(x_data,
     y_pos_patches = [np.array(get_patches(image, centers, patch_size))
                      for image, centers in zip(lesion_masks, lesion_centers)]
 
-    indices = [np.random.permutation(range(0, len(centers1))).tolist()[:len(centers2)] for centers1, centers2 in zip(nolesion_centers, lesion_centers)]
-    nolesion_small = [itemgetter(*idx)(centers) for centers, idx in zip(nolesion_centers, indices)]
-    x_neg_patches = [np.array(get_patches(image, centers, patch_size)) for image, centers in zip(images_norm, nolesion_small)]
-    y_neg_patches = [np.array(get_patches(image, centers, patch_size)) for image, centers in zip(lesion_masks, nolesion_small)]
+    indices = [
+        np.random.permutation(range(0, len(centers1))).tolist()[:len(centers2)]
+        for centers1, centers2 in zip(nolesion_centers, lesion_centers)]
+    nolesion_small = [
+        itemgetter(*idx)(centers)
+        for centers, idx in zip(nolesion_centers, indices)]
+    x_neg_patches = [
+        np.array(get_patches(image, centers, patch_size))
+        for image, centers in zip(images_norm, nolesion_small)]
+    y_neg_patches = [
+        np.array(get_patches(image, centers, patch_size))
+        for image, centers in zip(lesion_masks, nolesion_small)]
 
     # concatenate positive and negative patches for each subject
-    X = np.concatenate([np.concatenate([x1, x2]) for x1, x2 in zip(x_pos_patches, x_neg_patches)], axis = 0)
-    Y = np.concatenate([np.concatenate([y1, y2]) for y1, y2 in zip(y_pos_patches, y_neg_patches)], axis= 0)
+    X = np.concatenate([np.concatenate([x1, x2])
+                        for x1, x2 in zip(x_pos_patches,
+                                          x_neg_patches)],
+                       axis=0)
+    Y = np.concatenate([np.concatenate([y1, y2])
+                        for y1, y2 in zip(y_pos_patches,
+                                          y_neg_patches)],
+                       axis=0)
 
     return X, Y
 
@@ -366,7 +380,7 @@ def load_test_patches(test_x_data,
 
     for m in modalities:
         raw_images = [load_nii(test_x_data[s][m]).get_data() for s in scans]
-        images.append([(im.astype(dtype=datatype) - im[np.nonzero(im)].mean()) / im[np.nonzero(im)].std() for im in raw_images])
+        images.append([normalize_data(im) for im in raw_images])
 
     # select voxels for testing. Discard CSF and darker WM in FLAIR.
     # If voxel_candidates is not selected, using intensity > 0.5 in FLAIR,
@@ -380,12 +394,19 @@ def load_test_patches(test_x_data,
         selected_voxels = get_mask_voxels(voxel_candidates)
 
     # yield data for testing with size equal to batch_size
-    for i in range(0, len(selected_voxels), batch_size):
-        c_centers = selected_voxels[i:i+batch_size]
-        X = []
-        for m, image_modality in zip(modalities, images):
-            X.append(get_patches(image_modality[0], c_centers, patch_size))
-        yield np.stack(X, axis=1), c_centers
+    # for i in range(0, len(selected_voxels), batch_size):
+    #     c_centers = selected_voxels[i:i+batch_size]
+    #     X = []
+    #     for m, image_modality in zip(modalities, images):
+    #         X.append(get_patches(image_modality[0], c_centers, patch_size))
+    #     yield np.stack(X, axis=1), c_centers
+
+    X = []
+    for image_modality in images:
+        X.append(get_patches(image_modality[0], selected_voxels, patch_size))
+
+    Xs = np.stack(X, axis=1)
+    return Xs, selected_voxels
 
 
 def get_mask_voxels(mask):
@@ -456,23 +477,28 @@ def test_scan(model,
     flair_scans = [test_x_data[s]['FLAIR'] for s in scans]
     flair_image = load_nii(flair_scans[0])
     seg_image = np.zeros_like(flair_image.get_data().astype('float32'))
-    all_voxels = np.sum(candidate_mask) if candidate_mask is not None else np.sum(flair_image.get_data() > 0)
+
+    if candidate_mask is not None:
+        all_voxels = np.sum(candidate_mask)
+    else:
+        all_voxels = np.sum(flair_image.get_data() > 0)
 
     if options['debug'] is True:
             print "> DEBUG ", scans[0], "Voxels to classify:", all_voxels
 
     # compute lesion segmentation in batches of size options['batch_size']
-    for batch, centers in load_test_patches(test_x_data,
-                                            options['patch_size'],
-                                            options['batch_size'],
-                                            candidate_mask):
-        if options['debug'] is True:
-            print "> DEBUG: testing current_batch:", batch.shape,
+    batch, centers = load_test_patches(test_x_data,
+                                       options['patch_size'],
+                                       options['batch_size'],
+                                       candidate_mask)
+    if options['debug'] is True:
+        print "> DEBUG: testing current_batch:", batch.shape,
 
-        y_pred = model.predict_proba(np.squeeze(batch))
-        [x, y, z] = np.stack(centers, axis=1)
-        seg_image[x, y, z] = y_pred[:, 1]
-        if options['debug'] is True:
+    y_pred = model['net'].predict(np.squeeze(batch),
+                                  options['batch_size'])
+    [x, y, z] = np.stack(centers, axis=1)
+    seg_image[x, y, z] = y_pred[:, 1]
+    if options['debug'] is True:
             print "...done!"
 
     if save_nifti:
@@ -522,7 +548,8 @@ def select_voxels_from_previous_model(model, train_x_data, options):
     # FLAIR modality > 2
     flair_scans = [train_x_data[s]['FLAIR'] for s in scans]
     images = [load_nii(name).get_data() for name in flair_scans]
-    images_norm = [(im.astype(dtype=np.float32) - im[np.nonzero(im)].mean()) / im[np.nonzero(im)].std() for im in images]
+    images_norm = [normalize_data(im) for im in images]
+
     seg_mask = [im > 2 if np.sum(seg) == 0 else seg
                 for im, seg in zip(images_norm, seg_masks)]
 
@@ -566,7 +593,7 @@ def post_process_segmentation(input_scan,
                                                            float, 0)
 
     for l in range(len(num_elements_by_lesion)):
-        if num_elements_by_lesion[l]>l_min:
+        if num_elements_by_lesion[l] > l_min:
             # assign voxels to output
             current_voxels = np.stack(np.where(labels == l), axis=1)
             output_scan[current_voxels[:, 0],

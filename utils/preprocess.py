@@ -42,21 +42,24 @@ def parse_input_masks(current_folder, options):
             input_path = os.path.join(current_folder, m)
             input_sequence = nib.load(input_path)
             # check first the input modalities
-            for mod, tag in zip(modalities, image_tags):
-                # find tag
-                if m.find(tag) >= 0:
-                    # generate a new output image modality
-                    # check for extra dimensions
-                    input_image = np.squeeze(input_sequence.get_data())
-                    output_sequence = nib.Nifti1Image(input_image,
-                                                      affine=input_sequence.affine)
-                    output_sequence.to_filename(
-                        os.path.join(options['tmp_folder'], mod + '.nii.gz'))
-                    if options['debug']:
-                        print "    --> ", m, "as", mod, "image"
 
-                    found_modalities += 1
-                    break
+            # find tag
+            found_mod = [m.find(tag) if m.find(tag) >= 0
+                         else np.Inf for tag in image_tags]
+            if found_mod[np.argmin(found_mod)] is not np.Inf:
+                mod = modalities[np.argmin(found_mod)]
+                # generate a new output image modality
+                # check for extra dimensions
+                input_image = np.squeeze(input_sequence.get_data())
+                output_sequence = nib.Nifti1Image(input_image,
+                                                  affine=input_sequence.affine)
+                output_sequence.to_filename(
+                    os.path.join(options['tmp_folder'], mod + '.nii.gz'))
+
+                found_modalities += 1
+
+                if options['debug']:
+                    print "    --> ", m, "as", mod, "image"
 
     # check that the minimum number of modalities are used
     if found_modalities < len(options['modalities']):

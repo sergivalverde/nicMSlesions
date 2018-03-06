@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 #   MS lesion segmentation pipeline
 # ---------------------------------
 #   - incorporates:
@@ -10,7 +10,7 @@
 #
 #  Sergi Valverde 2017
 #  svalverde@eia.udg.edu
-# ------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
 
 import os
 import sys
@@ -85,7 +85,7 @@ else:
     os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
 
 from CNN.base import train_cascaded_model
-from CNN.build_model_nolearn import cascade_model
+from CNN.build_model import cascade_model
 
 if container:
     options['train_folder'] = os.path.normpath(
