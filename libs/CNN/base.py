@@ -55,7 +55,6 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     else:
         model[0] = fit_model(model[0], X, Y, options)
 
-
     # ----------
     # CNN2
     # ----------
@@ -86,8 +85,7 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     else:
         model[1] = fit_model(model[1], X, Y, options)
 
-    # model[0].max_epochs = options['max_epochs']
-    # model[1].max_epochs = options['max_epochs']
+
 
     return model
 

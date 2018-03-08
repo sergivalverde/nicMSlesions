@@ -108,6 +108,10 @@ if container:
 else:
     options['test_folder'] = os.path.normpath(options['test_folder'])
 
+# set task to train
+options['task'] = 'inference'
+
+# list scans
 scan_list = os.listdir(options['test_folder'])
 scan_list.sort()
 

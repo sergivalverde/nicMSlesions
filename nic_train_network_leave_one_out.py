@@ -110,6 +110,9 @@ for scan in scan_list:
     options['tmp_folder'] = os.path.normpath(
         os.path.join(current_folder,  'tmp'))
 
+    # set task to train
+    options['task'] = 'training'
+
     # preprocess scan
     preprocess_scan(current_folder, options)
 

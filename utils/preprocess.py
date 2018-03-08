@@ -30,7 +30,13 @@ def parse_input_masks(current_folder, options):
     """
 
     image_tags = options['image_tags'] + options['roi_tags']
-    modalities = options['modalities'] + ['lesion']
+    if options['task'] == 'training':
+        modalities = options['modalities'] + ['lesion']
+    else:
+        modalities = options['modalities']
+
+    if options['debug']:
+        print "> DEBUG:", "number of input sequences to find:", len(modalities)
     scan = options['tmp_scan']
     masks = os.listdir(current_folder)
 
@@ -62,7 +68,7 @@ def parse_input_masks(current_folder, options):
                     print "    --> ", m, "as", mod, "image"
 
     # check that the minimum number of modalities are used
-    if found_modalities < len(options['modalities']):
+    if found_modalities < len(modalities):
         print "> ERROR:", scan, \
             "does not contain all valid input modalities"
         sys.stdout.flush()

@@ -93,6 +93,10 @@ if container:
 else:
     options['train_folder'] = os.path.normpath(options['train_folder'])
 
+# set task to train
+options['task'] = 'training'
+
+# list scan
 scan_list = os.listdir(options['train_folder'])
 scan_list.sort()
 
