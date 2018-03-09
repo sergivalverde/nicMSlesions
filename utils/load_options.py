@@ -47,6 +47,10 @@ def load_options(default_config, user_config):
     # preprocessing
     options['register_modalities'] = (default_config.get('database',
                                                          'register_modalities'))
+    options['denoise'] = (default_config.get('database',
+                                             'denoise'))
+    options['denoise_iter'] = (default_config.getint('database',
+                                                     'denoise_iter'))
     options['skull_stripping'] = (default_config.get('database',
                                                      'skull_stripping'))
     options['save_tmp'] = (default_config.get('database', 'save_tmp'))

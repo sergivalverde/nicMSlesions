@@ -7,6 +7,7 @@ import time
 import platform
 import nibabel as nib
 import numpy as np
+from medpy.filter.smoothing import anisotropic_diffusion as ans_dif
 
 
 def get_mode(input_data):
@@ -29,11 +30,12 @@ def parse_input_masks(current_folder, options):
 
     """
 
-    image_tags = options['image_tags'] + options['roi_tags']
     if options['task'] == 'training':
         modalities = options['modalities'] + ['lesion']
+        image_tags = options['image_tags'] + options['roi_tags']
     else:
         modalities = options['modalities']
+        image_tags = options['image_tags']
 
     if options['debug']:
         print "> DEBUG:", "number of input sequences to find:", len(modalities)
@@ -48,7 +50,6 @@ def parse_input_masks(current_folder, options):
             input_path = os.path.join(current_folder, m)
             input_sequence = nib.load(input_path)
             # check first the input modalities
-
             # find tag
             found_mod = [m.find(tag) if m.find(tag) >= 0
                          else np.Inf for tag in image_tags]
@@ -110,6 +111,30 @@ def register_masks(options):
             print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
+
+
+def denoise_masks(options):
+    """
+    Denoise input masks to reduce noise.
+    Using anisotropic Diffusion (Perona and Malik)
+
+    """
+
+    for mod in options['modalities']:
+
+        current_image = mod + '.nii.gz' if mod == 'FLAIR'\
+                        else 'r' + mod + '.nii.gz'
+
+        tmp_scan = nib.load(os.path.join(options['tmp_folder'],
+                                         current_image))
+
+        tmp_scan.get_data()[:] = ans_dif(tmp_scan.get_data(),
+                                         niter=options['denoise_iter'])
+
+        tmp_scan.to_filename(os.path.join(options['tmp_folder'],
+                                          'd' + current_image))
+        if options['debug']:
+            print "> DEBUG: Denoising ", current_image
 
 
 def skull_strip(options):
@@ -208,6 +233,26 @@ def preprocess_scan(current_folder, options):
             os.kill(os.getpid(), signal.SIGTERM)
 
     # --------------------------------------------------
+    # noise filtering
+    # --------------------------------------------------
+    if options['denoise'] is True:
+        denoise_time = time.time()
+        denoise_masks(options)
+        print "> INFO: denoising", scan, "elapsed time: ", round(time.time() - denoise_time), "sec"
+    else:
+        try:
+            for mod in options['modalities']:
+                out_scan = 'd' + mod + '.nii.gz' if mod == 'FLAIR' else 'rd' + mod + '.nii.gz'
+                shutil.move(os.path.join(options['tmp_folder'],
+                                         'd' + mod + '.nii.gz'),
+                            os.path.join(options['tmp_folder'],
+                                         out_scan))
+        except:
+            print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
+            time.sleep(1)
+            os.kill(os.getpid(), signal.SIGTERM)
+
+    # --------------------------------------------------
     # skull strip
     # --------------------------------------------------
 
@@ -218,7 +263,7 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
-                input_scan = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
+                input_scan = 'd' + mod + '.nii.gz' if mod == 'FLAIR' else 'dr' + mod + '.nii.gz'
                 shutil.move(os.path.join(options['tmp_folder'],
                                          input_scan),
                             os.path.join(options['tmp_folder'],

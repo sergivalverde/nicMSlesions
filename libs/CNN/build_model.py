@@ -133,44 +133,25 @@ def cascade_model(options):
 
     if options['full_train'] is False:
 
-        if options['pretrained_model'] == 'baseline':
+        # load default weights
+        print "> CNN: Loading pretrained weights from the", \
+        options['pretrained_model'], "configuration"
+        pretrained_model = os.path.join(options['weight_paths'], \
+                                        options['pretrained_model'],'nets')
+        model = os.path.join(options['weight_paths'],
+                             options['experiment'])
+        net1_w_def = os.path.join(model, 'nets', 'model_1.hdf5')
+        net2_w_def = os.path.join(model, 'nets', 'model_2.hdf5')
 
-            # load default weights
-            print "> CNN: Loading pretrained weights \
-            from the default configuration!"
-
-            current_folder = os.path.dirname(os.path.abspath(__file__))
-            net1_w_def = os.path.join(current_folder,
-                                      'defaults',
-                                      'baseline',
-                                      'nets',
-                                      'model_1.hdf5')
-            net2_w_def = os.path.join(current_folder,
-                                      'defaults',
-                                      'baseline',
-                                      'nets',
-                                      'model_2.hdf5')
+        if not os.path.exists(model):
+            shutil.copy(pretrained_model, model)
         else:
-            # load default weights
-            print "> CNN: Loading pretrained weights from the", \
-                options['pretrained_model'], "configuration"
-            pretrained_model = os.path.join(options['weight_paths'], \
-                                            options['pretrained_model'],'nets')
-            model = os.path.join(options['weight_paths'],
-                                 options['experiment'])
-            net1_w_def = os.path.join(model, 'nets', 'model_1.hdf5')
-            net2_w_def = os.path.join(model, 'nets', 'model_2.hdf5')
-
-            if not os.path.exists(model):
-                shutil.copy(pretrained_model, model)
-            else:
-                shutil.copyfile(os.path.join(pretrained_model,
-                                             'model_1.pkl'),
-                                net1_w_def)
-                shutil.copyfile(os.path.join(pretrained_model,
-                                             'model_2.pkl'),
-                                net2_w_def)
-
+            shutil.copyfile(os.path.join(pretrained_model,
+                                         'model_1.hdf5'),
+                            net1_w_def)
+            shutil.copyfile(os.path.join(pretrained_model,
+                                         'model_2.hdf5'),
+                            net2_w_def)
         try:
             net1['net'].load_weights(net1_w_def, by_name=True)
             net2['net'].load_weights(net2_w_def, by_name=True)
@@ -215,6 +196,8 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
             num_layers = 2
         else:
             num_layers = 3
+
+    print "> CNN: re-training the last", num_layers, "layers"
 
     # set FC layers
     if num_layers == 1:
@@ -282,6 +265,7 @@ def fit_model(model, x_train, y_train, options, initial_epoch=0):
                                  patience=options['patience'],
                                  verbose=0,
                                  mode='auto')])
+
 
     model['history'] = h
 

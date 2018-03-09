@@ -31,7 +31,6 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     # CNN1
     # ----------
 
-
     print "> CNN: loading training data for first model"
     X, Y, sel_voxels = load_training_data(train_x_data, train_y_data, options)
     print '> CNN: train_x ', X.shape
@@ -41,17 +40,32 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
     # samples. Resampling is set to 10 by default
 
     if options['full_train'] is False:
-        model[0] = define_training_layers(net=model[0],
+        max_epochs = options['max_epochs']
+        patience = 0
+        best_val_loss = np.Inf
+        model[0] = define_training_layers(model=model[0],
                                           num_layers=options['num_layers'],
                                           number_of_samples=X.shape[0])
-
-        num_iterations = options['max_epochs'] / 10
-        for it in range(num_iterations):
+        options['max_epochs'] = 0
+        for it in range(0, max_epochs, 10):
+            options['max_epochs'] += 10
             model[0] = fit_model(model[0], X, Y, options,
-                                 initial_epoch=it*num_iterations)
+                                 initial_epoch=it)
+
+            # evaluate if continuing training or not
+            val_loss = min(model[0]['history'].history['val_loss'])
+            if val_loss > best_val_loss:
+                patience += 10
+            else:
+                best_val_loss = val_loss
+
+            if patience >= options['patience']:
+                break
+
             X, Y, sel_voxels = load_training_data(train_x_data,
                                                   train_y_data,
                                                   options)
+        options['max_epochs'] = max_epochs
     else:
         model[0] = fit_model(model[0], X, Y, options)
 
@@ -68,20 +82,35 @@ def train_cascaded_model(model, train_x_data, train_y_data, options):
 
     # define training layers
     if options['full_train'] is False:
-        model[1] = define_training_layers(net=model[1],
+        max_epochs = options['max_epochs']
+        patience = 0
+        best_val_loss = np.Inf
+        model[1] = define_training_layers(model=model[1],
                                           num_layers=options['num_layers'],
                                           number_of_samples=X.shape[0])
 
-        num_iterations = options['max_epochs'] / 10
-        model[1].max_epochs = 10
-        for it in range(num_iterations):
+        options['max_epochs'] = 0
+        for it in range(0, max_epochs, 10):
+            options['max_epochs'] += 10
             model[1] = fit_model(model[1], X, Y, options,
-                                 initial_epoch=it*num_iterations)
+                                 initial_epoch=it)
+
+            # evaluate if continuing training or not
+            val_loss = min(model[0]['history'].history['val_loss'])
+            if val_loss > best_val_loss:
+                patience += 10
+            else:
+                best_val_loss = val_loss
+
+            if patience >= options['patience']:
+                break
+
             X, Y, sel_voxels = load_training_data(train_x_data,
                                                   train_y_data,
                                                   options,
                                                   model=model[0],
                                                   selected_voxels=sel_voxels)
+        options['max_epochs'] = max_epochs
     else:
         model[1] = fit_model(model[1], X, Y, options)
 
