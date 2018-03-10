@@ -19,6 +19,7 @@ import time
 import ConfigParser
 from utils.load_options import load_options
 from utils.preprocess import preprocess_scan
+from utils.postprocess import invert_registration
 from shutil import copyfile
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
@@ -146,9 +147,18 @@ for scan in scan_list:
                                           options['x_names'])}}
 
     out_seg = test_cascaded_model(model, test_x_data, options)
-    print "> INFO:", scan, "CNN Segmentation time: ", round(time.time() - seg_time), "sec"
 
-    print "> INFO:", scan, "total pipeline time: ", round(time.time() - total_time), "sec"
+    print "> INFO:", scan, "CNN Segmentation time: ",\
+        round(time.time() - seg_time), "sec"
+
+    # If input images have been registered before segmentation -> T1w space,
+    # then resample the segmentation  back to the original space
+    if options['register_modalities']:
+        print "> INFO:", scan, "Inverting lesion segmentation masks"
+        invert_registration(current_folder, options)
+
+    print "> INFO:", scan, "total pipeline time: ",\
+        round(time.time() - total_time), "sec"
 
     # remove tmps if not set
     if options['save_tmp'] is False:

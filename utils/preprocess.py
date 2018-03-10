@@ -80,7 +80,7 @@ def parse_input_masks(current_folder, options):
 def register_masks(options):
     """
     - to doc
-    - moving all images to the FLAIR space
+    - moving all images to the MPRAGE+192 space
 
     """
 
@@ -97,16 +97,43 @@ def register_masks(options):
     reg_aladin_path = os.path.join(options['niftyreg_path'], reg_exe)
 
     for mod in options['modalities']:
-        if mod == 'FLAIR':
+        if mod == 'T1':
             continue
 
         try:
-            print "> PRE:", scan, "registering",  mod, " --> FLAIR"
+            print "> PRE:", scan, "registering",  mod, " --> T1 space"
             subprocess.check_output([reg_aladin_path, '-ref',
-                                     os.path.join(options['tmp_folder'], 'FLAIR.nii.gz'),
+                                     os.path.join(options['tmp_folder'], 'T1.nii.gz'),
                                      '-flo', os.path.join(options['tmp_folder'], mod + '.nii.gz'),
-                                     '-aff', os.path.join(options['tmp_folder'], 'transf.txt'),
+                                     '-aff', os.path.join(options['tmp_folder'], mod + '_transf.txt'),
                                      '-res', os.path.join(options['tmp_folder'], 'r' + mod + '.nii.gz')])
+        except:
+            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            time.sleep(1)
+            os.kill(os.getpid(), signal.SIGTERM)
+
+    # if training, the lesion mask is also registered through the T1 space.
+    # Assuming that the refefence lesion space was FLAIR.
+    if options['task'] == 'training':
+        # rigid registration
+        os_host = platform.system()
+        if os_host == 'Windows':
+            reg_exe = 'reg_resample.exe'
+        elif os_host == 'Linux':
+            reg_exe = 'reg_resample'
+        else:
+            print "> ERROR: The OS system", os_host, "is not currently supported."
+
+        reg_resample_path = os.path.join(options['niftyreg_path'], reg_exe)
+
+        try:
+            print "> PRE:", scan, "resampling the lesion mask --> T1 space"
+            subprocess.check_output([reg_resample_path, '-ref',
+                                     os.path.join(options['tmp_folder'], 'T1.nii.gz'),
+                                     '-flo', os.path.join(options['tmp_folder'], 'lesion'),
+                                     '-trans', os.path.join(options['tmp_folder'], 'FLAIR_transf.txt'),
+                                     '-res', os.path.join(options['tmp_folder'], 'lesion.nii.gz'),
+                                     '-inter', '0'])
         except:
             print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
             time.sleep(1)
@@ -122,7 +149,7 @@ def denoise_masks(options):
 
     for mod in options['modalities']:
 
-        current_image = mod + '.nii.gz' if mod == 'FLAIR'\
+        current_image = mod + '.nii.gz' if mod == 'T1'\
                         else 'r' + mod + '.nii.gz'
 
         tmp_scan = nib.load(os.path.join(options['tmp_folder'],
@@ -148,7 +175,7 @@ def skull_strip(options):
     """
 
     scan = options['tmp_scan']
-    t1_im = os.path.join(options['tmp_folder'], 'rT1.nii.gz')
+    t1_im = os.path.join(options['tmp_folder'], 'dT1.nii.gz')
     t1_st_im = os.path.join(options['tmp_folder'], 'T1_brain.nii.gz')
 
     try:
@@ -170,10 +197,9 @@ def skull_strip(options):
         # apply the same mask to the rest of modalities to reduce
         # computational time
 
-        input_name = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
         print '> PRE: ', scan, 'Applying skull mask to ', mod, 'image'
         current_mask = os.path.join(options['tmp_folder'],
-                                    input_name)
+                                    'dr' + mod + '.nii.gz')
         current_st_mask = os.path.join(options['tmp_folder'],
                                        mod + '_brain.nii.gz')
 
@@ -222,13 +248,16 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
-                out_scan = mod + '.nii.gz' if mod == 'FLAIR' else 'r' + mod + '.nii.gz'
-                shutil.move(os.path.join(options['tmp_folder'],
+                if mod == 'T1':
+                    continue
+                out_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
+                shutil.copy2(os.path.join(options['tmp_folder'],
                                          mod + '.nii.gz'),
-                            os.path.join(options['tmp_folder'],
+                             os.path.join(options['tmp_folder'],
                                          out_scan))
         except:
-            print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print "> ERROR: registration ", scan, "I can not rename input modalities as tmp files. Quiting program."
+
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -242,13 +271,13 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
-                out_scan = 'd' + mod + '.nii.gz' if mod == 'FLAIR' else 'rd' + mod + '.nii.gz'
-                shutil.move(os.path.join(options['tmp_folder'],
-                                         'd' + mod + '.nii.gz'),
+                input_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
+                shutil.copy(os.path.join(options['tmp_folder'],
+                                         input_scan),
                             os.path.join(options['tmp_folder'],
-                                         out_scan))
+                                         'd' + input_scan))
         except:
-            print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print "> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -263,13 +292,13 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
-                input_scan = 'd' + mod + '.nii.gz' if mod == 'FLAIR' else 'dr' + mod + '.nii.gz'
-                shutil.move(os.path.join(options['tmp_folder'],
+                input_scan = 'd' + mod + '.nii.gz' if mod == 'T1' else 'dr' + mod + '.nii.gz'
+                shutil.copy(os.path.join(options['tmp_folder'],
                                          input_scan),
                             os.path.join(options['tmp_folder'],
                                          mod + '_brain.nii.gz'))
         except:
-            print "> ERROR:", scan, "I can not rename input modalities as tmp files. Quiting program."
+            print "> ERROR: Skull-stripping", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
