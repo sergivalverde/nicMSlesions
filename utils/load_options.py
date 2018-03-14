@@ -30,18 +30,36 @@ def load_options(default_config, user_config):
     options['current_scan'] = 'scan'
     # options['t1_name'] = default_config.get('database', 't1_name')
     # options['flair_name'] = default_config.get('database', 'flair_name')
-    options['image_tags'] = [el.strip() for el in
+    options['flair_tags'] = [el.strip() for el in
                              default_config.get('database',
-                                                'image_tags').split(',')]
+                                                'flair_tags').split(',')]
+    options['t1_tags'] = [el.strip() for el in
+                             default_config.get('database',
+                                                't1_tags').split(',')]
+    options['mod3_tags'] = [el.strip() for el in
+                             default_config.get('database',
+                                                'mod3_tags').split(',')]
+    options['mod4_tags'] = [el.strip() for el in
+                             default_config.get('database',
+                                                'mod4_tags').split(',')]
     options['roi_tags'] = [el.strip() for el in
                            default_config.get('database',
                                               'roi_tags').split(',')]
-    options['modalities'] = [el.strip().upper() for el in
-                             default_config.get('database',
-                                                'modalities').split(',')]
     # options['ROI_name'] = default_config.get('database', 'ROI_name')
     options['debug'] = default_config.get('database', 'debug')
-    options['x_names'] = [m + '_brain.nii.gz' for m in options['modalities']]
+
+    modalities = [str(options['flair_tags'][0]),
+                  options['t1_tags'][0],
+                  options['mod3_tags'][0],
+                  options['mod4_tags'][0]]
+    names = ['FLAIR', 'T1', 'MOD3', 'MOD4']
+
+    options['modalities'] = [n for n, m in
+                             zip(names, modalities) if m != 'None']
+    options['image_tags'] = [m for m in modalities if m != 'None']
+    options['x_names'] = [n + '_brain.nii.gz' for n, m in
+                          zip(names, modalities) if m != 'None']
+
     options['out_name'] = 'out_seg.nii.gz'
 
     # preprocessing
@@ -74,11 +92,14 @@ def load_options(default_config, user_config):
     # post processing options
     options['t_bin'] = default_config.getfloat('postprocessing', 't_bin')
     options['l_min'] = default_config.getint('postprocessing', 'l_min')
+    options['min_error'] = default_config.getfloat('postprocessing',
+                                                   'min_error')
 
     # transfer learning options
     options['full_train'] = (default_config.get('train', 'full_train'))
     options['pretrained_model'] = default_config.get('train',
                                                      'pretrained_model')
+
     options['num_layers'] = None
 
     options = parse_values_to_types(options)

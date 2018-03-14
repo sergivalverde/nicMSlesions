@@ -81,11 +81,12 @@ def train_network(options):
         os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
 
     from CNN.base import train_cascaded_model
-    from CNN.build_model_nolearn import cascade_model
+    from CNN.build_model import cascade_model
 
     scan_list = os.listdir(options['train_folder'])
     scan_list.sort()
 
+    options['task'] = 'training'
     options['train_folder'] = os.path.normpath(options['train_folder'])
     for scan in scan_list:
 
@@ -117,7 +118,8 @@ def train_network(options):
     train_y_data = {f: os.path.join(options['train_folder'],
                                     f,
                                     'tmp',
-                                    options['ROI_name']) for f in scan_list}
+                                    'lesion.nii.gz')
+                    for f in scan_list}
 
     options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
     options['load_weights'] = False
@@ -150,7 +152,7 @@ def infer_segmentation(options):
         os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
 
     from CNN.base import test_cascaded_model
-    from CNN.build_model_nolearn import cascade_model
+    from CNN.build_model import cascade_model
 
     # --------------------------------------------------
     # net configuration
@@ -170,6 +172,7 @@ def infer_segmentation(options):
     # - skull-stripping
     # - WM segmentation
     # --------------------------------------------------
+    options['task'] = 'testing'
     scan_list = os.listdir(options['test_folder'])
     scan_list.sort()
 

@@ -147,7 +147,6 @@ print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
 # --------------------------------------------------
 model = cascade_model(options)
 model = train_cascaded_model(model, train_x_data, train_y_data,  options)
-
 print "> INFO: training time:", round(time.time() - seg_time), "sec"
 print "> INFO: total pipeline time: ", round(time.time() - total_time), "sec"
 print "> INFO: All processes have been finished. Have a good day!"

@@ -528,6 +528,14 @@ def test_scan(model,
     if options['debug'] is True:
             print "...done!"
 
+    # check if the computed volume is lower than the minimum accuracy given
+    # by the min_error parameter
+    if check_min_error(seg_image, options, flair_image.header.get_zooms()):
+        if options['debug']:
+            print "> DEBUG ", scans[0], "lesion volume below ", \
+                options['min_error'], 'ml'
+        seg_image = np.zeros_like(flair_image.get_data().astype('float32'))
+
     if save_nifti:
         out_scan = nib.Nifti1Image(seg_image, affine=flair_image.affine)
         out_scan.to_filename(os.path.join(options['test_folder'],
@@ -536,6 +544,45 @@ def test_scan(model,
                                           options['test_name']))
 
     return seg_image
+
+
+def check_min_error(input_scan, options, voxel_size):
+    """
+    check that the output volume is higher than the minimum accuracy
+    given by the
+    parameter min_error
+    """
+
+    from scipy import ndimage
+
+    t_bin = options['t_bin']
+    l_min = options['l_min']
+
+    # get voxel size in mm^3
+    voxel_size = np.prod(voxel_size) / 1000.0
+
+    # threshold input segmentation
+    output_scan = np.zeros_like(input_scan)
+    t_segmentation = input_scan >= t_bin
+
+    # filter candidates by size and store those > l_min
+    labels, num_labels = ndimage.label(t_segmentation)
+    label_list = np.unique(labels)
+    num_elements_by_lesion = ndimage.labeled_comprehension(t_segmentation,
+                                                           labels,
+                                                           label_list,
+                                                           np.sum,
+                                                           float, 0)
+
+    for l in range(len(num_elements_by_lesion)):
+        if num_elements_by_lesion[l] > l_min:
+            # assign voxels to output
+            current_voxels = np.stack(np.where(labels == l), axis=1)
+            output_scan[current_voxels[:, 0],
+                        current_voxels[:, 1],
+                        current_voxels[:, 2]] = 1
+
+    return (np.sum(output_scan == 1) * voxel_size) < options['min_error']
 
 
 def select_voxels_from_previous_model(model, train_x_data, options):

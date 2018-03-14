@@ -24,18 +24,17 @@ def get_mode(input_data):
 
 
 def parse_input_masks(current_folder, options):
-
     """
     identify input image masks parsing image name labels
 
     """
 
     if options['task'] == 'training':
-        modalities = options['modalities'] + ['lesion']
-        image_tags = options['image_tags'] + options['roi_tags']
+        modalities = options['modalities'][:] + ['lesion']
+        image_tags = options['image_tags'][:] + options['roi_tags'][:]
     else:
-        modalities = options['modalities']
-        image_tags = options['image_tags']
+        modalities = options['modalities'][:]
+        image_tags = options['image_tags'][:]
 
     if options['debug']:
         print "> DEBUG:", "number of input sequences to find:", len(modalities)
@@ -45,7 +44,12 @@ def parse_input_masks(current_folder, options):
     print "> PRE:", scan, "identifying input modalities"
 
     found_modalities = 0
+
     for m in masks:
+
+        if modalities == []:
+            continue
+
         if m.find('.nii') > 0:
             input_path = os.path.join(current_folder, m)
             input_sequence = nib.load(input_path)
@@ -55,6 +59,8 @@ def parse_input_masks(current_folder, options):
                          else np.Inf for tag in image_tags]
             if found_mod[np.argmin(found_mod)] is not np.Inf:
                 mod = modalities[np.argmin(found_mod)]
+                image_tags.remove(image_tags[np.argmin(found_mod)])
+                modalities.remove(mod)
                 # generate a new output image modality
                 # check for extra dimensions
                 input_image = np.squeeze(input_sequence.get_data())

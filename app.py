@@ -1,4 +1,3 @@
-
 # --------------------------------------------------
 # nicMSlesions: MS white matter lesion segmentation
 #
@@ -75,10 +74,14 @@ class wm_seg:
         self.param_test_folder = StringVar()
         self.param_FLAIR_tag = StringVar()
         self.param_T1_tag = StringVar()
+        self.param_MOD3_tag = StringVar()
+        self.param_MOD4_tag = StringVar()
         self.param_mask_tag = StringVar()
         self.param_model_tag = StringVar()
         self.param_register_modalities = BooleanVar()
         self.param_skull_stripping = BooleanVar()
+        self.param_denoise = BooleanVar()
+        self.param_denoise_iter = IntVar()
         self.param_save_tmp = BooleanVar()
         self.param_debug = BooleanVar()
 
@@ -103,6 +106,7 @@ class wm_seg:
         self.param_net_verbose = IntVar()
         self.param_t_bin = DoubleVar()
         self.param_l_min = IntVar()
+        self.param_min_error = DoubleVar()
         self.param_mode = StringVar()
 
         # load the default configuration from the conf file
@@ -171,42 +175,57 @@ class wm_seg:
                              padx=(100, 1),
                              pady=1)
 
+
+        # setting input modalities: FLAIR + T1 are mandatory
+        # Mod 3 / 4 are optional
         self.flairTagLbl = Label(self.tr_frame, text="FLAIR tag:")
-        self.flairTagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
+        self.flairTagLbl.grid(row=1, column=0, sticky='E', padx=5, pady=2)
         self.flairTxt = Entry(self.tr_frame,
                               textvariable=self.param_FLAIR_tag)
-        self.flairTxt.grid(row=2, column=1, columnspan=1, sticky="W", pady=1)
+        self.flairTxt.grid(row=1, column=1, columnspan=1, sticky="W", pady=1)
 
         self.t1TagLbl = Label(self.tr_frame, text="T1 tag:")
-        self.t1TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
+        self.t1TagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
         self.t1Txt = Entry(self.tr_frame, textvariable=self.param_T1_tag)
-        self.t1Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
+        self.t1Txt.grid(row=2, column=1, columnspan=1, sticky="W", pady=1)
+
+        self.mod3TagLbl = Label(self.tr_frame, text="mod 3 tag:")
+        self.mod3TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
+        self.mod3Txt = Entry(self.tr_frame,
+                              textvariable=self.param_MOD3_tag)
+        self.mod3Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
+
+        self.mod4TagLbl = Label(self.tr_frame, text="mod 4 tag:")
+        self.mod4TagLbl.grid(row=4, column=0, sticky='E', padx=5, pady=2)
+        self.mod4Txt = Entry(self.tr_frame,
+                              textvariable=self.param_MOD4_tag)
+        self.mod4Txt.grid(row=4, column=1, columnspan=1, sticky="W", pady=1)
 
         self.maskTagLbl = Label(self.tr_frame, text="MASK tag:")
-        self.maskTagLbl.grid(row=4, column=0,
+        self.maskTagLbl.grid(row=5, column=0,
                              sticky='E', padx=5, pady=2)
         self.maskTxt = Entry(self.tr_frame, textvariable=self.param_mask_tag)
-        self.maskTxt.grid(row=4, column=1, columnspan=1, sticky="W", pady=1)
+        self.maskTxt.grid(row=5, column=1, columnspan=1, sticky="W", pady=1)
 
         # model options
         self.modelTagLbl = Label(self.model_frame, text="Model name:")
-        self.modelTagLbl.grid(row=5, column=0,
+        self.modelTagLbl.grid(row=6, column=0,
                               sticky='E', padx=5, pady=2)
         self.modelTxt = Entry(self.model_frame,
                               textvariable=self.param_model_tag)
-        self.modelTxt.grid(row=5, column=1, columnspan=1, sticky="W", pady=1)
+        self.modelTxt.grid(row=6, column=1, columnspan=1, sticky="W", pady=1)
 
         self.checkPretrain = Checkbutton(self. model_frame,
                                          text="use pretrained",
                                          var=self.param_use_pretrained_model)
-        self.checkPretrain.grid(row=5, column=3, padx=5, pady=5)
+        self.checkPretrain.grid(row=6, column=3, padx=5, pady=5)
 
         self.update_pretrained_nets()
 
         self.pretrainTxt = OptionMenu(self.model_frame,
                                       self.param_pretrained_model,
                                       *self.list_train_pretrained_nets)
-        self.pretrainTxt.grid(row=5, column=5, sticky='E', padx=5, pady=5)
+        self.pretrainTxt.grid(row=6, column=5, sticky='E', padx=5, pady=5)
 
         # START button links
         self.trainingBtn = Button(self.train_frame,
@@ -254,30 +273,27 @@ class wm_seg:
                                   pady=1)
 
         self.test_flairTagLbl = Label(self.tt_frame, text="FLAIR tag:")
-        self.test_flairTagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
+        self.test_flairTagLbl.grid(row=1, column=0, sticky='E', padx=5, pady=2)
         self.test_flairTxt = Entry(self.tt_frame,
-                                   textvariable=self.param_FLAIR_tag)
-        self.test_flairTxt.grid(row=2,
-                                column=1,
-                                columnspan=1,
-                                sticky="W",
-                                pady=1)
+                              textvariable=self.param_FLAIR_tag)
+        self.test_flairTxt.grid(row=1, column=1, columnspan=1, sticky="W", pady=1)
 
         self.test_t1TagLbl = Label(self.tt_frame, text="T1 tag:")
-        self.test_t1TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
+        self.test_t1TagLbl.grid(row=2, column=0, sticky='E', padx=5, pady=2)
         self.test_t1Txt = Entry(self.tt_frame, textvariable=self.param_T1_tag)
-        self.test_t1Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
+        self.test_t1Txt.grid(row=2, column=1, columnspan=1, sticky="W", pady=1)
 
-        self.test_maskTagLbl = Label(self.tt_frame, text="MASK tag:")
-        self.test_maskTagLbl.grid(row=4, column=0,
-                                  sticky='E', padx=5, pady=2)
-        self.test_maskTxt = Entry(self.tt_frame,
-                                  textvariable=self.param_mask_tag)
-        self.test_maskTxt.grid(row=4,
-                               column=1,
-                               columnspan=1,
-                               sticky="W",
-                               pady=1)
+        self.test_mod3TagLbl = Label(self.tt_frame, text="mod 3 tag:")
+        self.test_mod3TagLbl.grid(row=3, column=0, sticky='E', padx=5, pady=2)
+        self.test_mod3Txt = Entry(self.tt_frame,
+                              textvariable=self.param_MOD3_tag)
+        self.test_mod3Txt.grid(row=3, column=1, columnspan=1, sticky="W", pady=1)
+
+        self.test_mod4TagLbl = Label(self.tt_frame, text="mod 4 tag:")
+        self.test_mod4TagLbl.grid(row=4, column=0, sticky='E', padx=5, pady=2)
+        self.test_mod4Txt = Entry(self.tt_frame,
+                              textvariable=self.param_MOD4_tag)
+        self.test_mod4Txt.grid(row=4, column=1, columnspan=1, sticky="W", pady=1)
 
         self.test_pretrainTxt = OptionMenu(self.test_model_frame,
                                            self.param_inference_model,
@@ -333,7 +349,6 @@ class wm_seg:
 
         # data parameters
         t_data = LabelFrame(t, text="data options:")
-        # t_data.pack(fill="both")
         t_data.grid(row=0, sticky="WE")
         checkPretrain = Checkbutton(t_data,
                                     text="Register modalities",
@@ -343,56 +358,72 @@ class wm_seg:
                                  text="Skull-strip modalities",
                                  var=self.param_skull_stripping)
         checkSkull.grid(row=1, sticky="W")
+        checkDenoise = Checkbutton(t_data,
+                                   text="Denoise masks",
+                                   var=self.param_denoise)
+        checkDenoise.grid(row=2, sticky="W")
+
+        denoise_iter_label = Label(t_data, text=" Denoise iter:")
+        denoise_iter_label.grid(row=3, sticky="W")
+        denoise_iter_entry = Entry(t_data, textvariable=self.param_denoise_iter)
+        denoise_iter_entry.grid(row=3, column=1, sticky="E")
+
         check_tmp = Checkbutton(t_data,
                                 text="Save tmp files",
                                 var=self.param_save_tmp)
-        check_tmp.grid(row=2, sticky="W")
+        check_tmp.grid(row=4, sticky="W")
         checkdebug = Checkbutton(t_data,
-                                 text="Show debug messages",
+                                 text="Debug mode",
                                  var=self.param_debug)
-        checkdebug.grid(row=3, sticky="W")
+        checkdebug.grid(row=5, sticky="W")
 
         # model parameters
         t_model = LabelFrame(t, text="Model:")
         t_model.grid(row=5, sticky="EW")
 
-        maxepochs_label = Label(t_model, text="Max epochs:           ")
+        maxepochs_label = Label(t_model, text="Max epochs:                  ")
         maxepochs_label.grid(row=6, sticky="W")
         maxepochs_entry = Entry(t_model, textvariable=self.param_max_epochs)
-        maxepochs_entry.grid(row=6, column=1, sticky="W")
+        maxepochs_entry.grid(row=6, column=1, sticky="E")
 
-        trainsplit_label = Label(t_model, text="Validation %:")
+        trainsplit_label = Label(t_model, text="Validation %:           ")
         trainsplit_label.grid(row=7, sticky="W")
         trainsplit_entry = Entry(t_model, textvariable=self.param_train_split)
-        trainsplit_entry.grid(row=7, column=1, sticky="W")
+        trainsplit_entry.grid(row=7, column=1, sticky="E")
 
         batchsize_label = Label(t_model, text="Test batch size:")
         batchsize_label.grid(row=8, sticky="W")
         batchsize_entry = Entry(t_model, textvariable=self.param_batch_size)
-        batchsize_entry.grid(row=8, column=1, sticky="W")
+        batchsize_entry.grid(row=8, column=1, sticky="E")
 
         mode_label = Label(t_model, text="Mode:")
         mode_label.grid(row=9, sticky="W")
         mode_entry = Entry(t_model, textvariable=self.param_mode)
-        mode_entry.grid(row=9, column=1, sticky="W")
+        mode_entry.grid(row=9, column=1, sticky="E")
 
         mode_label = Label(t_model, text="Verbosity:")
         mode_label.grid(row=11, sticky="W")
         mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
-        mode_entry.grid(row=11, column=1, sticky="W")
+        mode_entry.grid(row=11, column=1, sticky="E")
 
         # model parameters
         t_post = LabelFrame(t, text="Post-processing:")
         t_post.grid(row=12, sticky="EW")
-        t_bin_label = Label(t_post, text="Out probability th:")
+        t_bin_label = Label(t_post, text="Out probability th:    ")
         t_bin_label.grid(row=13, sticky="W")
         t_bin_entry = Entry(t_post, textvariable=self.param_t_bin)
-        t_bin_entry.grid(row=13, column=1, sticky="W")
+        t_bin_entry.grid(row=13, column=1, sticky="E")
 
-        l_min_label = Label(t_post, text="Min out region size:")
+        l_min_label = Label(t_post, text="Min out region size:       ")
         l_min_label.grid(row=14, sticky="W")
         l_min_entry = Entry(t_post, textvariable=self.param_l_min)
-        l_min_entry.grid(row=14, column=1, sticky="W")
+        l_min_entry.grid(row=14, column=1, sticky="E")
+
+        vol_min_label = Label(t_post, text="Min vol error (ml):")
+        vol_min_label.grid(row=15, sticky="W")
+        vol_min_entry = Entry(t_post, textvariable=self.param_min_error)
+        vol_min_entry.grid(row=15, column=1, sticky="E")
+
 
     def load_default_configuration(self):
         """
@@ -409,10 +440,13 @@ class wm_seg:
                                                           'train_folder'))
         self.param_test_folder.set(default_config.get('database',
                                                       'inference_folder'))
-        self.param_FLAIR_tag.set(default_config.get('database', 'flair_tags'))
-        self.param_T1_tag.set(default_config.get('database', 't1_tags'))
-        self.param_mask_tag.set(default_config.get('database', 'roi_tags'))
+        self.param_FLAIR_tag.set(default_config.get('database','flair_tags'))
+        self.param_T1_tag.set(default_config.get('database','t1_tags'))
+        self.param_MOD3_tag.set(default_config.get('database','mod3_tags'))
+        self.param_MOD4_tag.set(default_config.get('database','mod4_tags'))
         self.param_register_modalities.set(default_config.get('database', 'register_modalities'))
+        self.param_denoise.set(default_config.get('database', 'denoise'))
+        self.param_denoise_iter.set(default_config.getint('database', 'denoise_iter'))
         self.param_skull_stripping.set(default_config.get('database', 'skull_stripping'))
         self.param_save_tmp.set(default_config.get('database', 'save_tmp'))
         self.param_debug.set(default_config.get('database', 'debug'))
@@ -437,6 +471,8 @@ class wm_seg:
                                                    'l_min'))
         self.param_t_bin.set(default_config.getfloat('postprocessing',
                                                      't_bin'))
+        self.param_min_error.set(default_config.getfloat('postprocessing',
+                                                     'min_error'))
 
     def write_user_configuration(self):
         """
@@ -444,22 +480,30 @@ class wm_seg:
         """
         user_config = ConfigParser.RawConfigParser()
 
-        # dastaset parameters
+        # dataset parameters
         user_config.add_section('database')
         user_config.set('database', 'train_folder', self.param_training_folder.get())
         user_config.set('database', 'inference_folder', self.param_test_folder.get())
         user_config.set('database', 'flair_tags', self.param_FLAIR_tag.get())
         user_config.set('database', 't1_tags', self.param_T1_tag.get())
-        user_config.set('database', 'roi_tags', self.param_mask_tag.get())
+        user_config.set('database', 'mod3_tags', self.param_MOD3_tag.get())
+        user_config.set('database', 'mod4_tags', self.param_MOD4_tag.get())
+
         user_config.set('database', 'register_modalities', self.param_register_modalities.get())
+        user_config.set('database', 'denoise', self.param_denoise.get())
+        user_config.set('database', 'denoise_iter', self.param_denoise_iter.get())
         user_config.set('database', 'skull_stripping', self.param_skull_stripping.get())
         user_config.set('database', 'save_tmp', self.param_save_tmp.get())
         user_config.set('database', 'debug', self.param_debug.get())
 
         # train parameters
         user_config.add_section('train')
-        user_config.set('train', 'full_train', not(self.param_use_pretrained_model.get()))
-        user_config.set('train', 'pretrained_model', self.param_pretrained_model.get())
+        user_config.set('train',
+                        'full_train',
+                        not(self.param_use_pretrained_model.get()))
+        user_config.set('train',
+                        'pretrained_model',
+                        self.param_pretrained_model.get())
 
         # model parameters
         user_config.add_section('model')
@@ -476,6 +520,8 @@ class wm_seg:
         user_config.add_section('postprocessing')
         user_config.set('postprocessing', 't_bin', self.param_t_bin.get())
         user_config.set('postprocessing', 'l_min', self.param_l_min.get())
+        user_config.set('postprocessing',
+                        'min_error', self.param_min_error.get())
 
         # Writing our configuration file to 'example.cfg'
         with open(os.path.join(self.path,
