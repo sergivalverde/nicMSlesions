@@ -39,40 +39,37 @@ def parse_input_masks(current_folder, options):
     if options['debug']:
         print "> DEBUG:", "number of input sequences to find:", len(modalities)
     scan = options['tmp_scan']
-    masks = os.listdir(current_folder)
 
     print "> PRE:", scan, "identifying input modalities"
 
     found_modalities = 0
 
-    for m in masks:
+    masks = [m for m in os.listdir(current_folder) if m.find('.nii') > 0]
 
-        if modalities == []:
-            continue
+    for t, m in zip(image_tags, modalities):
 
-        if m.find('.nii') > 0:
-            input_path = os.path.join(current_folder, m)
+        # check first the input modalities
+        # find tag
+
+        found_mod = [mask.find(t) if mask.find(t) >= 0
+                     else np.Inf for mask in masks]
+
+        if found_mod[np.argmin(found_mod)] is not np.Inf:
+            found_modalities += 1
+            index = np.argmin(found_mod)
+            # generate a new output image modality
+            # check for extra dimensions
+            input_path = os.path.join(current_folder, masks[index])
             input_sequence = nib.load(input_path)
-            # check first the input modalities
-            # find tag
-            found_mod = [m.find(tag) if m.find(tag) >= 0
-                         else np.Inf for tag in image_tags]
-            if found_mod[np.argmin(found_mod)] is not np.Inf:
-                mod = modalities[np.argmin(found_mod)]
-                image_tags.remove(image_tags[np.argmin(found_mod)])
-                modalities.remove(mod)
-                # generate a new output image modality
-                # check for extra dimensions
-                input_image = np.squeeze(input_sequence.get_data())
-                output_sequence = nib.Nifti1Image(input_image,
-                                                  affine=input_sequence.affine)
-                output_sequence.to_filename(
-                    os.path.join(options['tmp_folder'], mod + '.nii.gz'))
+            input_image = np.squeeze(input_sequence.get_data())
+            output_sequence = nib.Nifti1Image(input_image,
+                                              affine=input_sequence.affine)
+            output_sequence.to_filename(
+                os.path.join(options['tmp_folder'], m + '.nii.gz'))
 
-                found_modalities += 1
-
-                if options['debug']:
-                    print "    --> ", m, "as", mod, "image"
+            if options['debug']:
+                print "    --> ", masks[index], "as", m, "image"
+            masks.remove(masks[index])
 
     # check that the minimum number of modalities are used
     if found_modalities < len(modalities):
