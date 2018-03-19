@@ -40,6 +40,7 @@ ENV HOME /home/docker
 RUN mkdir $HOME/src
 ENV PATH=/$HOME/src:${PATH}
 ADD .theanorc $HOME/.theanorc
+ADD .keras $HOME/.keras
 ADD app.py $HOME/src/
 ADD cnn_scripts.py $HOME/src/
 # ADD config $HOME/src/config
