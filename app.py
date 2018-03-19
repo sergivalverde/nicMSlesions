@@ -572,7 +572,7 @@ class wm_seg:
 
         """
         folders = os.listdir(self.param_net_folder)
-        self.list_train_pretrained_nets = folders + ['baseline']
+        self.list_train_pretrained_nets = folders
         self.list_test_nets = folders
 
     def write_to_console(self, txt):
