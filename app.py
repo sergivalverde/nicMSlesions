@@ -18,6 +18,7 @@ import os
 import signal
 import Queue
 import threading
+from __init__ import __version__
 from Tkinter import Frame, LabelFrame, Label, END, Tk
 from Tkinter import Entry, Button, Checkbutton, OptionMenu, Toplevel
 from Tkinter import BooleanVar, StringVar, IntVar, DoubleVar
@@ -52,7 +53,7 @@ class wm_seg:
         self.current_folder = os.getcwd()
         self.list_train_pretrained_nets = []
         self.list_test_nets = []
-
+        self.version = __version__
         if self.container is False:
             # version_number
             self.commit_version = subprocess.check_output(
@@ -689,7 +690,7 @@ class wm_seg:
 
         # NIC logo + name
         title = Label(t,
-                      text="nicMSlesions\n " +
+                      text="nicMSlesions v" + self.version + "\n"
                       "Multiple Sclerosis White Matter Lesion Segmentation")
         title.grid(row=2, column=1, padx=20, pady=10)
         img = ImageTk.PhotoImage(Image.open('./logonic.png'))
@@ -697,7 +698,7 @@ class wm_seg:
         imglabel.image = img
         imglabel.grid(row=1, column=1, padx=10, pady=10)
         group_name = Label(t,
-                           text="Copyright Sergi Valverde (2017-) \n " +
+                           text="Copyright Sergi Valverde (2018-) \n " +
                            "NeuroImage Computing Group")
         group_name.grid(row=3, column=1)
         group_link = Label(t, text=r"http://atc.udg.edu/nic",

@@ -39,6 +39,7 @@ ENV HOME /home/docker
 # copy necessary files to container
 RUN mkdir $HOME/src
 ENV PATH=/$HOME/src:${PATH}
+ADD __init__.py $HOME/src/
 ADD .theanorc $HOME/.theanorc
 ADD .keras $HOME/.keras
 ADD app.py $HOME/src/
