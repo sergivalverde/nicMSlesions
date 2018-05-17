@@ -212,9 +212,9 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
         net.get_layer('d2').trainable = True
         net.get_layer('prelu_d2').trainable = True
     if num_layers == 3:
-        net.get_layer('dr_d3').trainable = True
-        net.get_layer('d3').trainable = True
-        net.get_layer('prelu_d3').trainable = True
+        net.get_layer('dr_d1').trainable = True
+        net.get_layer('d1').trainable = True
+        net.get_layer('prelu_d1').trainable = True
         net.get_layer('dr_d2').trainable = True
         net.get_layer('d2').trainable = True
         net.get_layer('prelu_d2').trainable = True
