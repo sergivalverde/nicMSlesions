@@ -251,6 +251,57 @@ cd /where/nicMSlesions/lives
 git pull origin master
 ```
 
+# Docker:
+
+If [docker](https://www.docker.com/) is available in your machine,
+nicMslesions can be also run from a container. If you use GPU, take
+into account that
+[nvidia-docker](https://github.com/NVIDIA/nvidia-docker) should be
+present in your system. Then, to build the container:
+
+
+``` bash
+docker build -f Dockerfile -t nicmslesions .
+```
+
+To perform training, the docker image can be invoked as:
+
+``` bash
+nvidia-docker run -ti  \
+-v ./config:/home/docker/src/config:rw \
+-v ./nets:/home/docker/src/nets:rw \
+-v /path/to/your/data/:/data:rw \
+nicmslesions python -u nic_train_network_batch.py --docker
+```
+
+To perform inference:
+
+``` bash
+nvidia-docker run -ti  \
+-v ./config:/home/docker/src/config:rw \
+-v ./nets:/home/docker/src/nets:rw \
+-v /path/to/your/data/:/data:rw \
+nicmslesions python -u nic_infer_segmentation_batch.py --docker
+```
+
+Experimentally, if the docker is run under GNU/Linux, the GUI display
+can be easily imported as:
+
+``` bash
+run nvidia-docker -ti  \
+-e DISPLAY=$DISPLAY \
+-u="docker" \
+-v /tmp/.X11-unix:/tmp/.X11-unix \
+-v /path/to/your/data:/data:rw \
+-v ./nets:/home/docker/src/nets:rw \
+-v ./config:/home/docker/src/config:rw \
+nicmslesion python -u app.py --docker
+```
+
+For an easy-to-use pre-compiled docker version, please refer to the
+following repository
+'[nic-tools/nicmslesions](https://github.com/NIC-VICOROB/nic_tools/tree/master/nicMSlesions)'.
+
 
 # License:
 
