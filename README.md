@@ -253,7 +253,7 @@ git pull origin master
 
 # Docker:
 
-If [docker](https://www.docker.com/) is available in your machine,
+If [Docker](https://www.docker.com/) is available in your machine,
 nicMslesions can be also run from a container. If you use GPU, take
 into account that
 [nvidia-docker](https://github.com/NVIDIA/nvidia-docker) should be
@@ -274,7 +274,7 @@ nvidia-docker run -ti  \
 nicmslesions python -u nic_train_network_batch.py --docker
 ```
 
-To perform inference:
+where `/path/to/your/data` points towards your data folder. To perform inference:
 
 ``` bash
 nvidia-docker run -ti  \
@@ -294,13 +294,13 @@ run nvidia-docker -ti  \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
 -v /path/to/your/data:/data:rw \
 -v ./nets:/home/docker/src/nets:rw \
--v ./config:/home/docker/src/config:rw \
-nicmslesion python -u app.py --docker
+-v ./config:/home/docker/'src/config:rw \
+nicmslesions python -u app.py --docker
 ```
 
 For an easy-to-use pre-compiled docker version, please refer to the
-following repository
-'[nic-tools/nicmslesions](https://github.com/NIC-VICOROB/nic_tools/tree/master/nicMSlesions)'.
+following repository:
+[nic-tools/nicmslesions](https://github.com/NIC-VICOROB/nic_tools/tree/master/nicMSlesions).
 
 
 # License:
