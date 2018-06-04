@@ -147,7 +147,7 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 
     	* **Min out region size**: set the minimum lesion output size. This parameter is related to the image resolution. Setting this parameter to `10` is recommended in most the cases.
 
-        * **Minimum volume error **: Minimum error that the program
+        * **Minimum volume error**: Minimum error that the program
       can handle (in ml.). Segmentations with a resulting error < than the
       selected minimum error will be discarded.
 5. Finally, click the `start training` button to start a training session.
