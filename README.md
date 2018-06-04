@@ -1,6 +1,6 @@
 # NicMSlesions
 
-![See method](./gifs/nicMSlesions.gif)
+![See method](./media/nicMSlesions.gif)
 
 Easy multiple sclerosis white matter lesion segmentation using convolutional deep neural networks.
 
@@ -72,11 +72,11 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 
 1. Select training folder. Browse the folder containing a set of training subjects.
 
-	![See method](./gifs/load_training_folder.gif)
+	![See method](./media/load_training_folder.gif)
 
 	So far, nicMSlesions expects to find training subjects in separated folders. For instance:
 
-	![See method](./gifs/images.gif)
+	![See method](./media/images.gif)
 
 2. Select at least T1-w and FLAIR identification tags. Generally,
    image databases tend to have a unique identifier for each of the
@@ -88,13 +88,13 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
    loaded for each of the training subjects inside the
    `training_folder`. So far, nicMSlesions supports up to 4 input modalities:
 
-	![See method](./gifs/load_tags.gif)
+	![See method](./media/load_tags.gif)
 
 
 3. Set up a name for the training model and/or select a pre-trained
    model from the library.
 
-	![See method](./gifs/select_net.gif)
+	![See method](./media/select_net.gif)
 
 
 	If the `use pretrained` toggle button is pressed, a pre-trained model can be selected from either a predetermined model `baseline` or from a previous training session. Using a pretrained model, a new training session can be run with just a couple of new training images. This may be very interesting for instance to train a model on a new image domain where just a few annotations are available or also to update an already trained model with new training samples. However, the more the training available subjects, the better the accuracy on the target image domain.
@@ -103,7 +103,7 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 4. Configure other options. In most of the cases, the previous three steps are sufficient to train a new model. However, additional options are available to tune on the `other options` menu.
 
 
-	![See method](./gifs/select_other_.gif)
+	![See method](./media/select_other_.gif)
 
 	The following number of parameters can be tuned:
 
@@ -151,7 +151,7 @@ Very similarly click on the inference tab to start the program.
 
 1. Select the inference folder. Browse folder containing a set of inference subjects. The same folder structure is expected for inference.
 
-	![image](./gifs/testing.gif)
+	![image](./media/testing.gif)
 
 2. Similarly to training, select T1-w and FLAIR identification tags.
 
@@ -233,7 +233,7 @@ name = net_name
 
 Updating NicMSlesions to a new version can be done both via GUI and command line. To check a new version of the software, press the `about` button on the main window and then `Check for updates`:
 
-ww![image](./gifs/update.gif)
+![image](./media/update.gif)
 
 
 Of course, more advanced users can update the software pulling the latest version from the repository using:
