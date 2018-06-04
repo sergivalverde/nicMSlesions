@@ -111,7 +111,7 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 4. Configure other options. In most of the cases, the previous three steps are sufficient to train a new model. However, additional options are available to tune on the `other options` menu.
 
 
-	![See method](./media/select_other_.gif)
+	![See method](./media/set_training_options.gif)
 
 	The following number of parameters can be tuned:
 
@@ -147,8 +147,8 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 
     	* **Min out region size**: set the minimum lesion output size. This parameter is related to the image resolution. Setting this parameter to `10` is recommended in most the cases.
 
-    * **Minimum volume error **: Minimum error that the program can
-      handle (in ml.). Segmentations with a resulting error < than the
+        * **Minimum volume error **: Minimum error that the program
+      can handle (in ml.). Segmentations with a resulting error < than the
       selected minimum error will be discarded.
 5. Finally, click the `start training` button to start a training session.
 
