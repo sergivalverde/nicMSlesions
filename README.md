@@ -7,7 +7,15 @@ Easy multiple sclerosis white matter lesion segmentation using convolutional dee
 
 # About:
 
-NicMSlesions makes it easy to accurately segment white matter (WM) lesions on Magnetic Resonance Images (MRI) using supervised deep learning. With nicMSlesions, training and/or inference of a complex neural network model is performed with just a few mouse clicks. More interestingly, nicMSlesions can be trained with a very small set of annotated images, which can be very interesting to facilitate the use of supervised deep learning on the fairly amount of yet unlabeled data.
+NicMSlesions makes it easy to accurately segment white matter (WM)
+lesions on Magnetic Resonance Images (MRI) using supervised deep
+learning. With nicMSlesions, training and/or inference of a complex
+neural network model is performed with just a few mouse clicks. More
+interestingly, nicMSlesions can be trained with a very small set of
+annotated images, which can be very interesting to facilitate the use
+of supervised deep learning on the fairly amount of yet unlabeled data
+(see original [publication](https://arxiv.org/pdf/1805.12415.pdf) for
+more information.)
 
 NicMSlesions graphical user interface (GUI) is inspired on the classical [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) software, a widely well-known neuro-imaging toolbox. As some of the most common tools in FSL, nicMSlesions can be run both under a GUI or via scripting.
 
@@ -16,6 +24,9 @@ NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possi
 
 # Requirements:
 
+  The current version is based on [Keras](https://keras.io), so the
+  following softwares are necessary to run the program:
+
 * A decent machine running GNU/Linux or Windows. Deep learning methods
   are computationally expensive, so at least 8GB of RAM is necessary
   to train a new model. Although this limitation can be addressed
@@ -23,10 +34,6 @@ NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possi
   have avoided this option in order to speed up training, so 16GB is
   definitely highly recommended. For performing only inference, RAM
   requirements are more modest.
-
-  The current version is based on [Keras](https://keras.io), so the
-  following softwares are necessary to run the program:
-
 
 * A running [Python](https://www.python.org) environment. We highly recommend using the [Anaconda](https://conda.io/docs/user-guide/install/index.html) distribution.
 
