@@ -92,9 +92,10 @@ class wm_seg:
         self.param_pretrained_model = StringVar()
         self.param_inference_model = StringVar()
         self.param_num_layers = IntVar()
+        self.param_net_name = StringVar()
+        self.param_net_name.set('None')
 
         # model parameters
-        self.param_net_name = None
         self.param_pretrained = None
         self.param_min_th = DoubleVar()
         self.param_patch_size = IntVar()
@@ -125,7 +126,7 @@ class wm_seg:
         print "# MS WM lesion segmentation                      #"
         print "#                                                #"
         print "# -------------------------------                #"
-        print "# (c) Sergi Valverde 2017                        #"
+        print "# (c) Sergi Valverde 2018                        #"
         print "# Neuroimage Computing Group                     #"
         print "# -------------------------------                #"
         print "##################################################\n"
@@ -213,7 +214,7 @@ class wm_seg:
         self.modelTagLbl.grid(row=6, column=0,
                               sticky='E', padx=5, pady=2)
         self.modelTxt = Entry(self.model_frame,
-                              textvariable=self.param_model_tag)
+                              textvariable=self.param_net_name)
         self.modelTxt.grid(row=6, column=1, columnspan=1, sticky="W", pady=1)
 
         self.checkPretrain = Checkbutton(self. model_frame,
@@ -300,6 +301,7 @@ class wm_seg:
                                            self.param_inference_model,
                                            *self.list_test_nets)
 
+        self.param_inference_model.set('None')
         self.test_pretrainTxt.grid(row=5, column=0, sticky='E', padx=5, pady=5)
 
         # START button links cto docker task
@@ -445,6 +447,7 @@ class wm_seg:
         self.param_T1_tag.set(default_config.get('database','t1_tags'))
         self.param_MOD3_tag.set(default_config.get('database','mod3_tags'))
         self.param_MOD4_tag.set(default_config.get('database','mod4_tags'))
+        self.param_mask_tag.set(default_config.get('database','roi_tags'))
         self.param_register_modalities.set(default_config.get('database', 'register_modalities'))
         self.param_denoise.set(default_config.get('database', 'denoise'))
         self.param_denoise_iter.set(default_config.getint('database', 'denoise_iter'))
@@ -456,7 +459,6 @@ class wm_seg:
         self.param_use_pretrained_model.set(default_config.get('train', 'full_train'))
         self.param_pretrained_model.set(default_config.get('train', 'pretrained_model'))
         self.param_inference_model.set("      ")
-
         # model parameters
         self.param_net_folder = os.path.join(self.current_folder, 'nets')
         self.param_model_tag.set(default_config.get('model', 'name'))
@@ -489,6 +491,7 @@ class wm_seg:
         user_config.set('database', 't1_tags', self.param_T1_tag.get())
         user_config.set('database', 'mod3_tags', self.param_MOD3_tag.get())
         user_config.set('database', 'mod4_tags', self.param_MOD4_tag.get())
+        user_config.set('database', 'roi_tags', self.param_mask_tag.get())
 
         user_config.set('database', 'register_modalities', self.param_register_modalities.get())
         user_config.set('database', 'denoise', self.param_denoise.get())
@@ -597,9 +600,9 @@ class wm_seg:
         - write the configuration to disk
         - Run the process on a new thread
         """
-        net_state = self.param_inference_model.get()
-        if net_state == '      ':
-            self.write_to_test_console("ERROR: Please, select a network model ...\n")
+
+        if self.param_inference_model.get() == 'None':
+            print "ERROR: Please, select a network model before starting...\n"
             return
         if self.test_task is None:
             self.inferenceBtn.config(state='disabled')
@@ -625,7 +628,13 @@ class wm_seg:
         - write the configuration to disk
         - Run the process on a new thread
         """
+
+        if self.param_net_name.get() == 'None':
+            print "ERROR: Please, define network name before starting...\n"
+            return
+
         self.trainingBtn['state'] = 'disable'
+
         if self.train_task is None:
             self.trainingBtn.update()
             self.write_user_configuration()
