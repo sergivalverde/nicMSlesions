@@ -20,7 +20,7 @@ import time
 import ConfigParser
 from utils.preprocess import preprocess_scan
 from utils.load_options import load_options, print_options
-CURRENT_PATH = os.getcwd()
+CURRENT_PATH = CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 
 

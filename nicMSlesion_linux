@@ -1,4 +1,11 @@
 #!/bin/bash
 
-# run app.py
+CURRENT_PATH=`pwd`
+APP_PATH=`dirname "$0"`
+
+# run nic_mslesions
+cd $APP_PATH
 python app.py &
+
+# return back to the current folder
+cd $CURRENT_PATH

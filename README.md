@@ -42,8 +42,8 @@ NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possi
 * [Theano](http://deeplearning.net/software/theano/). The easiest way
 to install Theano and its dependencies is also through using
 [Anaconda](http://deeplearning.net/software/theano/install_ubuntu.html#requirements-installation-through-conda-recommended). [Tensorflow](https://www.tensorflow.org/ "Tensorflow")
-could be also used but be sure that ```image data format``` is set to
-`channels_first` in your `keras.json` configuration file.
+could be also used but be sure that *in both cases* ```image data format``` is set to
+`channels_first` in your `~/.keras/keras.json` con'figuration file.
 
 * [CUDA](https://developer.nvidia.com/cuda-zone). If you plan to use nicMSlesions using a GPU, please be sure that your computer has the appropriate [CUDA libraries](https://developer.nvidia.com/cuda-zone) installed.
     * On Windows, [this guide](http://www.islandman93.com/2016/04/tutorial-theano-install-on-windows-7-8.html) shows how to install Theano and CUDA.
