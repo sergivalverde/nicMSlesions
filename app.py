@@ -109,7 +109,7 @@ class wm_seg:
         self.param_t_bin = DoubleVar()
         self.param_l_min = IntVar()
         self.param_min_error = DoubleVar()
-        self.param_mode = StringVar()
+        self.param_mode = IntVar()
 
         # load the default configuration from the conf file
         self.load_default_configuration()
@@ -399,7 +399,7 @@ class wm_seg:
         batchsize_entry = Entry(t_model, textvariable=self.param_batch_size)
         batchsize_entry.grid(row=8, column=1, sticky="E")
 
-        mode_label = Label(t_model, text="Mode:")
+        mode_label = Label(t_model, text="GPU number:")
         mode_label.grid(row=9, sticky="W")
         mode_entry = Entry(t_model, textvariable=self.param_mode)
         mode_entry.grid(row=9, column=1, sticky="E")
@@ -467,7 +467,7 @@ class wm_seg:
         self.param_patience.set(default_config.getint('model', 'patience'))
         self.param_batch_size.set(default_config.getint('model', 'batch_size'))
         self.param_net_verbose.set(default_config.get('model', 'net_verbose'))
-        self.param_mode.set(default_config.get('model', 'mode'))
+        self.param_mode.set(default_config.getint('model', 'gpu'))
 
         # post-processing
         self.param_l_min.set(default_config.getint('postprocessing',
@@ -518,7 +518,7 @@ class wm_seg:
         user_config.set('model', 'patience', self.param_patience.get())
         user_config.set('model', 'batch_size', self.param_batch_size.get())
         user_config.set('model', 'net_verbose', self.param_net_verbose.get())
-        user_config.set('model', 'mode', self.param_mode.get())
+        user_config.set('model', 'gpu', self.param_mode.get())
 
         # postprocessing parameters
         user_config.add_section('postprocessing')
