@@ -38,6 +38,7 @@ ENV HOME /home/docker
 
 # copy necessary files to container
 RUN mkdir $HOME/src
+RUN mkdir /data
 ENV PATH=/$HOME/src:${PATH}
 ADD __init__.py $HOME/src/
 ADD .theanorc $HOME/.theanorc

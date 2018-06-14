@@ -222,6 +222,10 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
         net.get_layer('d3').trainable = True
         net.get_layer('prelu_d3').trainable = True
 
+    net.compile(loss='categorical_crossentropy',
+                optimizer='adadelta',
+                metrics=['accuracy'])
+
     model['net'] = net
     return model
 

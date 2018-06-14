@@ -19,8 +19,7 @@ more information.)
 
 NicMSlesions graphical user interface (GUI) is inspired on the classical [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) software, a widely well-known neuro-imaging toolbox. As some of the most common tools in FSL, nicMSlesions can be run both under a GUI or via scripting.
 
-NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possible to run it on CPU, it is based on a set of 3D convolutional layers, so using a GPU with [cuda](https://developer.nvidia.com/cuda-zone) capabilities is highly recommended.
-
+NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possible to run it on CPU, it is based on a set of 3D convolutional layers, so using a GPU with [cuda](https://developer.nvidia.com/cuda-zone) capabilities is highnly recommended.
 
 # Requirements:
 
