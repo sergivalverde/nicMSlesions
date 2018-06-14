@@ -74,7 +74,8 @@ def load_options(default_config, user_config):
     options['save_tmp'] = (default_config.get('database', 'save_tmp'))
 
     # net options
-    options['mode'] = default_config.get('model', 'mode')
+    options['gpu'] = default_config.getint('model', 'gpu')
+    options['backend'] = default_config.get('model', 'backend')
     options['pretrained'] = default_config.get('model', 'pretrained')
     options['min_th'] = 0.5
     options['fully_convolutional'] = False

@@ -7,6 +7,9 @@ import keras
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from nets import get_network
 
+# force data format to "channels first"
+keras.backend.set_image_data_format('channels_first')
+
 
 def transform(Xb, yb):
     """

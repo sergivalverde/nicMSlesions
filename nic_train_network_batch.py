@@ -76,13 +76,20 @@ else:
     exit()
 
 
-# set GPU mode from the configuration file. This has to be updated
-# calling the CNN libraries if the default config "~/.theanorc" has to be
-# replaced.
-if options['mode'].find('gpu') == -1 and options['mode'].find('cuda') == -1:
-    os.environ['THEANO_FLAGS']='mode=FAST_RUN,device=cpu,floatX=float32,optimizer=fast_compile'
+# set GPU mode from the configuration file. Trying to update
+# the backend automatically from here in order to use either theano
+# or tensorflow backends
+
+if options['backend'] == 'theano':
+    device = 'cuda' + str(options['gpu']) if options['gpu'] is not None else 'cpu'
+    os.environ['KERAS_BACKEND'] = options['backend']
+    os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
 else:
-    os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
+    device = str(options['gpu']) if options['gpu'] is not None else " "
+    print "DEBUG: ", device
+    os.environ['KERAS_BACKEND'] = 'tensorflow'
+    os.environ["CUDA_VISIBLE_DEVICES"] = device
+
 
 from CNN.base import train_cascaded_model
 from CNN.build_model import cascade_model
