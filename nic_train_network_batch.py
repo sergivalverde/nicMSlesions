@@ -90,7 +90,6 @@ else:
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ["CUDA_VISIBLE_DEVICES"] = device
 
-
 from CNN.base import train_cascaded_model
 from CNN.build_model import cascade_model
 

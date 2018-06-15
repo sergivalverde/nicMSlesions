@@ -72,7 +72,8 @@ else:
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ["CUDA_VISIBLE_DEVICES"] = device
 
-# set paths taking into account the host OS
+
+    # set paths taking into account the host OS
 host_os = platform.system()
 if host_os == 'Linux':
     options['niftyreg_path'] = CURRENT_PATH + '/libs/linux/niftyreg'
@@ -88,6 +89,9 @@ else:
     "> ERROR: The OS system", host_os, "is not currently supported"
 
 
+from CNN.base import test_cascaded_model
+from CNN.build_model import cascade_model
+
 # --------------------------------------------------
 # net configuration
 # take into account if the pretrained models have to be used
@@ -97,6 +101,7 @@ options['full_train'] = True
 options['load_weights'] = True
 options['weight_paths'] = os.path.join(CURRENT_PATH, 'nets')
 options['net_verbose'] = 0
+
 model = cascade_model(options)
 
 # --------------------------------------------------
