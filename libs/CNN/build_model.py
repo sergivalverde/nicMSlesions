@@ -186,10 +186,6 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
 
     outputs - updated model """
 
-    # all layers are first set to non trainable
-    net = model['net']
-    for l in net.layers:
-        l.trainable = False
 
     # use the nunber of samples to choose the number of layers to retrain
     if number_of_samples is not None:
@@ -200,9 +196,18 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
         else:
             num_layers = 3
 
+    # all layers are first set to non trainable
+
+    net = model['net']
+    for l in net.layers:
+         l.trainable = False
+
     print "> CNN: re-training the last", num_layers, "layers"
 
-    # set FC layers
+    # re-train the FC layers based on the number of retrained
+    # layers
+    net.get_layer('out').trainable = True
+
     if num_layers == 1:
         net.get_layer('dr_d3').trainable = True
         net.get_layer('d3').trainable = True
@@ -225,11 +230,12 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
         net.get_layer('d3').trainable = True
         net.get_layer('prelu_d3').trainable = True
 
-    net.compile(loss='categorical_crossentropy',
-                optimizer='adadelta',
-                metrics=['accuracy'])
+    #net.compile(loss='categorical_crossentropy',
+    #            optimizer='adadelta',
+    #            metrics=['accuracy'])
 
     model['net'] = net
+    net.summary()
     return model
 
 
