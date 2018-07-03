@@ -96,11 +96,16 @@ def load_options(default_config, user_config):
     options['min_error'] = default_config.getfloat('postprocessing',
                                                    'min_error')
 
-    # transfer learning options
+    # training options
     options['full_train'] = (default_config.get('train', 'full_train'))
     options['pretrained_model'] = default_config.get('train',
                                                      'pretrained_model')
 
+    options['balanced_training'] = default_config.get('train',
+                                                      'balanced_training')
+
+    options['fract_negative_positive'] = default_config.getfloat('train',
+                                                                'fract_negative_positive')
     options['num_layers'] = None
 
     options = parse_values_to_types(options)

@@ -94,6 +94,8 @@ class wm_seg:
         self.param_num_layers = IntVar()
         self.param_net_name = StringVar()
         self.param_net_name.set('None')
+        self.param_balanced_dataset = StringVar()
+        self.param_fract_negatives = DoubleVar()
 
         # model parameters
         self.param_pretrained = None
@@ -366,7 +368,7 @@ class wm_seg:
                                    var=self.param_denoise)
         checkDenoise.grid(row=2, sticky="W")
 
-        denoise_iter_label = Label(t_data, text=" Denoise iter:")
+        denoise_iter_label = Label(t_data, text=" Denoise iter:               ")
         denoise_iter_label.grid(row=3, sticky="W")
         denoise_iter_entry = Entry(t_data, textvariable=self.param_denoise_iter)
         denoise_iter_entry.grid(row=3, column=1, sticky="E")
@@ -409,23 +411,38 @@ class wm_seg:
         mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
         mode_entry.grid(row=11, column=1, sticky="E")
 
-        # model parameters
-        t_post = LabelFrame(t, text="Post-processing:")
-        t_post.grid(row=12, sticky="EW")
-        t_bin_label = Label(t_post, text="Out probability th:    ")
-        t_bin_label.grid(row=13, sticky="W")
+
+        # training parameters
+        tr_model = LabelFrame(t, text="Training:")
+        tr_model.grid(row=12, sticky="EW")
+
+        balanced_label = Label(tr_model, text="Balanced dataset:    ")
+        balanced_label.grid(row=13, sticky="W")
+        balanced_entry = Entry(tr_model, textvariable=self.param_balanced_dataset)
+        balanced_entry.grid(row=13, column=1, sticky="E")
+
+        fraction_label = Label(tr_model, text="Fraction negative/positives: ")
+        fraction_label.grid(row=14, sticky="W")
+        fraction_entry = Entry(tr_model, textvariable=self.param_fract_negatives)
+        fraction_entry.grid(row=14, column=1, sticky="E")
+
+        # postprocessing parameters
+        t_post = LabelFrame(t, text="Post-processing:  ")
+        t_post.grid(row=15, sticky="EW")
+        t_bin_label = Label(t_post, text="Out probability th:      ")
+        t_bin_label.grid(row=16, sticky="W")
         t_bin_entry = Entry(t_post, textvariable=self.param_t_bin)
-        t_bin_entry.grid(row=13, column=1, sticky="E")
+        t_bin_entry.grid(row=16, column=1, sticky="E")
 
-        l_min_label = Label(t_post, text="Min out region size:       ")
-        l_min_label.grid(row=14, sticky="W")
+        l_min_label = Label(t_post, text="Min out region size:         ")
+        l_min_label.grid(row=17, sticky="W")
         l_min_entry = Entry(t_post, textvariable=self.param_l_min)
-        l_min_entry.grid(row=14, column=1, sticky="E")
+        l_min_entry.grid(row=17, column=1, sticky="E")
 
-        vol_min_label = Label(t_post, text="Min vol error (ml):")
-        vol_min_label.grid(row=15, sticky="W")
+        vol_min_label = Label(t_post, text="Min vol error (ml):   ")
+        vol_min_label.grid(row=18, sticky="W")
         vol_min_entry = Entry(t_post, textvariable=self.param_min_error)
-        vol_min_entry.grid(row=15, column=1, sticky="E")
+        vol_min_entry.grid(row=18, column=1, sticky="E")
 
 
     def load_default_configuration(self):
@@ -459,6 +476,9 @@ class wm_seg:
         self.param_use_pretrained_model.set(default_config.get('train', 'full_train'))
         self.param_pretrained_model.set(default_config.get('train', 'pretrained_model'))
         self.param_inference_model.set("      ")
+        self.param_balanced_dataset.set(default_config.get('train', 'balanced_training'))
+        self.param_fract_negatives.set(default_config.getfloat('train', 'fract_negative_positive'))
+
         # model parameters
         self.param_net_folder = os.path.join(self.current_folder, 'nets')
         self.param_model_tag.set(default_config.get('model', 'name'))
@@ -508,7 +528,12 @@ class wm_seg:
         user_config.set('train',
                         'pretrained_model',
                         self.param_pretrained_model.get())
-
+        user_config.set('train',
+                        'balanced_training',
+                        self.param_balanced_dataset.get())
+        user_config.set('train',
+                        'fraction_negatives',
+                        self.param_fract_negatives.get())
         # model parameters
         user_config.add_section('model')
         user_config.set('model', 'name', self.param_model_tag.get())
@@ -722,15 +747,15 @@ class wm_seg:
         license_label = Label(t, text=license_content)
         license_label.grid(row=5, column=1, padx=20, pady=20)
 
-        if self.container is False:
-            # check version and updates
-            version_number = Label(t, text="commit: " + self.commit_version)
-            version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
-
-            self.check_link = Button(t,
-                                text="Check for updates",
-                                command=self.check_update)
-            self.check_link.grid(row=7, column=1)
+        # if self.container is False:
+        #     # check version and updates
+        #     version_number = Label(t, text="commit: " + self.commit_version)
+        #     version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
+        #
+        #     self.check_link = Button(t,
+        #                         text="Check for updates",
+        #                         command=self.check_update)
+        #     self.check_link.grid(row=7, column=1)
 
     def process_container_queue(self):
         """

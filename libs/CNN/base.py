@@ -239,7 +239,9 @@ def load_training_data(train_x_data,
         x_patches, y_patches = load_train_patches(x_data,
                                                   y_data,
                                                   selected_voxels,
-                                                  options['patch_size'])
+                                                  options['patch_size'],
+                                                  options['balanced_training'],
+                                                  options['fract_negative_positive'])
         data.append(x_patches)
 
     # stack patches in channels [samples, channels, p1, p2, p3]
@@ -308,6 +310,8 @@ def load_train_patches(x_data,
                        y_data,
                        selected_voxels,
                        patch_size,
+                       balanced_training,
+                       fraction_negatives,
                        random_state=42,
                        datatype=np.float32):
     """
@@ -340,7 +344,9 @@ def load_train_patches(x_data,
     lesion_centers = [get_mask_voxels(mask) for mask in lesion_masks]
     nolesion_centers = [get_mask_voxels(mask) for mask in nolesion_masks]
 
-    # load all positive samples (lesion voxels) and the same number
+    # load all positive samples (lesion voxels). If a balanced training is set
+    # use the same number of positive and negative samples. On unbalanced
+    # training sets, the number of negative samples is multiplied by
     # of random negatives samples
     np.random.seed(random_state)
 
@@ -349,9 +355,18 @@ def load_train_patches(x_data,
     y_pos_patches = [np.array(get_patches(image, centers, patch_size))
                      for image, centers in zip(lesion_masks, lesion_centers)]
 
-    indices = [
-        np.random.permutation(range(0, len(centers1))).tolist()[:len(centers2)]
-        for centers1, centers2 in zip(nolesion_centers, lesion_centers)]
+
+    number_lesions = [np.sum(lesion) for lesion in lesion_masks]
+    total_lesions = np.sum(number_lesions)
+    neg_samples = int((total_lesions * fraction_negatives) / len(number_lesions))
+
+    indices = []
+    for centers1, centers2, lesion in zip(nolesion_centers, lesion_centers, number_lesions):
+        if balanced_training and np.sum(lesion) > 0:
+            indices.append(np.random.permutation(range(0, len(centers1))).tolist()[:len(centers2)])
+        else:
+            indices.append(np.random.permutation(range(0, len(centers1))).tolist()[:neg_samples])
+
     nolesion_small = [
         itemgetter(*idx)(centers)
         for centers, idx in zip(nolesion_centers, indices)]
@@ -362,15 +377,22 @@ def load_train_patches(x_data,
         np.array(get_patches(image, centers, patch_size))
         for image, centers in zip(lesion_masks, nolesion_small)]
 
-    # concatenate positive and negative patches for each subject
-    X = np.concatenate([np.concatenate([x1, x2])
-                        for x1, x2 in zip(x_pos_patches,
-                                          x_neg_patches)],
-                       axis=0)
-    Y = np.concatenate([np.concatenate([y1, y2])
-                        for y1, y2 in zip(y_pos_patches,
-                                          y_neg_patches)],
-                       axis=0)
+    X, Y = [], []
+
+    for x1, x2, y1, y2, lesion in zip(x_pos_patches,
+                                      x_neg_patches,
+                                      y_pos_patches,
+                                      y_neg_patches,
+                                      number_lesions):
+        if np.sum(lesion) > 0:
+            X.append(np.concatenate([x1, x2]))
+            Y.append(np.concatenate([y1, y2]))
+        else:
+            X.append(x2)
+            Y.append(y2)
+
+    X = np.concatenate(X, axis=0)
+    Y = np.concatenate(Y, axis=0)
 
     return X, Y
 
