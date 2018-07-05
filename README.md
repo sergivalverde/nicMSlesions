@@ -18,7 +18,7 @@ of supervised deep learning on the fairly amount of yet unlabeled data
 more information.)
 
 NicMSlesions graphical user interface (GUI) is inspired on the classical [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) software, a widely well-known neuro-imaging toolbox. As some of the most common tools in FSL, nicMSlesions can be run both under a GUI or via scripting.
-
+n
 NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possible to run it on CPU, it is based on a set of 3D convolutional layers, so using a GPU with [cuda](https://developer.nvidia.com/cuda-zone) capabilities is highnly recommended.
 
 # Requirements:
@@ -132,7 +132,23 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 
     	* **Mode**: select GPU or CPU processing. Set this options to `cudaX` where `X` is the cuda device to use (`cuda0` in most of the cases). Set the parameter to `cpu` otherwise.
 
-    	* **Verbosity**: set the output verbosity of the network model. Setting this parameter to 1 prints the training procedure for each of the epochs. This can be interesting when training a new method. If not necessary keep it to `0` to reduce messages.
+    	* **Verbosity**: set the output verbosity of the network
+          model. Setting this parameter to 1 prints the training
+          procedure for each of the epochs. This can be interesting
+          when training a new method. If not necessary keep it to `0`
+          to reduce messages.
+
+    * Training:
+
+        * **Balanced dataset**: Perform balanced training or not. If
+          set to `True`, the same number of positive (lesion) and
+          negative (healthy) samples are used.
+
+        * **Fraction negative / positive samples**: Values higher than
+          1 sets the fraction of sampled negative samples with respect
+          to lesion samples. This parameter is no applied if the
+          `balanced dataset` parameter is also set.
+
 
     * Post-processing:
 
@@ -232,12 +248,7 @@ name = net_name
 
 # Update:
 
-Updating NicMSlesions to a new version can be done both via GUI and command line. To check a new version of the software, press the `about` button on the main window and then `Check for updates`:
-
-![image](./media/update.gif)
-
-
-Of course, more advanced users can update the software pulling the latest version from the repository using:
+Updating NicMSlesions to a new version can be done both via the command line pulling the latest version from the repository using:
 
 ```
 cd /where/nicMSlesions/lives

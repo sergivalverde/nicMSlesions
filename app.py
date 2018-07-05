@@ -477,7 +477,7 @@ class wm_seg:
         self.param_pretrained_model.set(default_config.get('train', 'pretrained_model'))
         self.param_inference_model.set("      ")
         self.param_balanced_dataset.set(default_config.get('train', 'balanced_training'))
-        self.param_fract_negatives.set(default_config.getfloat('train', 'fract_negative_positive'))
+        self.param_fract_negatives.set(default_config.getfloat('train', 'fraction_negatives'))
 
         # model parameters
         self.param_net_folder = os.path.join(self.current_folder, 'nets')
