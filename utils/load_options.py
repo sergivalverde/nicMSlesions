@@ -105,7 +105,7 @@ def load_options(default_config, user_config):
                                                       'balanced_training')
 
     options['fract_negative_positive'] = default_config.getfloat('train',
-                                                                'fract_negative_positive')
+                                                                'fraction_negatives')
     options['num_layers'] = None
 
     options = parse_values_to_types(options)

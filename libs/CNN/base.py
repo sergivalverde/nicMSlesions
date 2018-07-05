@@ -348,48 +348,56 @@ def load_train_patches(x_data,
     # use the same number of positive and negative samples. On unbalanced
     # training sets, the number of negative samples is multiplied by
     # of random negatives samples
+
     np.random.seed(random_state)
 
-    x_pos_patches = [np.array(get_patches(image, centers, patch_size))
-                     for image, centers in zip(images_norm, lesion_centers)]
-    y_pos_patches = [np.array(get_patches(image, centers, patch_size))
-                     for image, centers in zip(lesion_masks, lesion_centers)]
-
+    #x_pos_patches = [np.array(get_patches(image, centers, patch_size))
+    #                 for image, centers in zip(images_norm, lesion_centers)]
+    #y_pos_patches = [np.array(get_patches(image, centers, patch_size))
+    #                 for image, centers in zip(lesion_masks, lesion_centers)]
 
     number_lesions = [np.sum(lesion) for lesion in lesion_masks]
     total_lesions = np.sum(number_lesions)
     neg_samples = int((total_lesions * fraction_negatives) / len(number_lesions))
-
-    indices = []
-    for centers1, centers2, lesion in zip(nolesion_centers, lesion_centers, number_lesions):
-        if balanced_training and np.sum(lesion) > 0:
-            indices.append(np.random.permutation(range(0, len(centers1))).tolist()[:len(centers2)])
-        else:
-            indices.append(np.random.permutation(range(0, len(centers1))).tolist()[:neg_samples])
-
-    nolesion_small = [
-        itemgetter(*idx)(centers)
-        for centers, idx in zip(nolesion_centers, indices)]
-    x_neg_patches = [
-        np.array(get_patches(image, centers, patch_size))
-        for image, centers in zip(images_norm, nolesion_small)]
-    y_neg_patches = [
-        np.array(get_patches(image, centers, patch_size))
-        for image, centers in zip(lesion_masks, nolesion_small)]
-
+    print "DEUGGING: ", total_lesions, fraction_negatives, len(number_lesions), neg_samples
     X, Y = [], []
 
-    for x1, x2, y1, y2, lesion in zip(x_pos_patches,
-                                      x_neg_patches,
-                                      y_pos_patches,
-                                      y_neg_patches,
-                                      number_lesions):
-        if np.sum(lesion) > 0:
-            X.append(np.concatenate([x1, x2]))
-            Y.append(np.concatenate([y1, y2]))
+    for l_centers, nl_centers, image, lesion in zip(lesion_centers,
+                                                    nolesion_centers,
+                                                    images_norm,
+                                                    lesion_masks):
+
+        # balanced training: same number of positive and negative samples
+        if balanced_training:
+            if len(l_centers) > 0:
+                # positive samples
+                x_pos_samples = get_patches(image, l_centers, patch_size)
+                y_pos_samples = get_patches(lesion, l_centers, patch_size)
+                idx = np.random.permutation(range(0, len(nl_centers))).tolist()[:len(l_centers)]
+                nolesion = itemgetter(*idx)(nl_centers)
+                x_neg_samples = get_patches(image, nolesion, patch_size)
+                y_neg_samples = get_patches(lesion, nolesion, patch_size)
+                X.append(np.concatenate([x_pos_samples, x_neg_samples]))
+                Y.append(np.concatenate([y_pos_samples, y_neg_samples]))
+
+        # unbalanced dataset: images with only negative samples are allowed
         else:
-            X.append(x2)
-            Y.append(y2)
+            if len(l_centers) > 0:
+                x_pos_samples = get_patches(image, l_centers, patch_size)
+                y_pos_samples = get_patches(lesion, l_centers, patch_size)
+
+            idx = np.random.permutation(range(0, len(nl_centers))).tolist()[:neg_samples]
+            nolesion = itemgetter(*idx)(nl_centers)
+            x_neg_samples = get_patches(image, nolesion, patch_size)
+            y_neg_samples = get_patches(lesion, nolesion, patch_size)
+
+            # concatenate positive and negative samples
+            if len(l_centers) > 0:
+                X.append(np.concatenate([x_pos_samples, x_neg_samples]))
+                Y.append(np.concatenate([y_pos_samples, y_neg_samples]))
+            else:
+                X.append(x_neg_samples)
+                Y.append(y_neg_samples)
 
     X = np.concatenate(X, axis=0)
     Y = np.concatenate(Y, axis=0)
