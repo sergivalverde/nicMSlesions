@@ -359,7 +359,6 @@ def load_train_patches(x_data,
     number_lesions = [np.sum(lesion) for lesion in lesion_masks]
     total_lesions = np.sum(number_lesions)
     neg_samples = int((total_lesions * fraction_negatives) / len(number_lesions))
-    print "DEUGGING: ", total_lesions, fraction_negatives, len(number_lesions), neg_samples
     X, Y = [], []
 
     for l_centers, nl_centers, image, lesion in zip(lesion_centers,

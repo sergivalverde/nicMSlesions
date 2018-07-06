@@ -96,8 +96,8 @@ def cascade_model(options):
     model.compile(loss='categorical_crossentropy',
                   optimizer='adadelta',
                   metrics=['accuracy'])
-    if options['debug']:
-        model.summary()
+    # if options['debug']:
+    #     model.summary()
 
     # save weights
     net_model = 'model_1'
@@ -118,8 +118,8 @@ def cascade_model(options):
     model2.compile(loss='categorical_crossentropy',
                    optimizer='adadelta',
                    metrics=['accuracy'])
-    if options['debug']:
-        model2.summary()
+    # if options['debug']:
+    #    model2.summary()
 
     # save weights
     net_model = 'model_2'
@@ -184,9 +184,8 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
     inputs: - model: Neural network object net1 or net2 - number of
     layers to retrain - nunber of training samples
 
-    outputs - updated model """
-
-
+    outputs - updated model
+    """
     # use the nunber of samples to choose the number of layers to retrain
     if number_of_samples is not None:
         if number_of_samples < 10000:
@@ -235,7 +234,6 @@ def define_training_layers(model, num_layers=1, number_of_samples=None):
     #            metrics=['accuracy'])
 
     model['net'] = net
-    net.summary()
     return model
 
 
