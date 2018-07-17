@@ -407,15 +407,15 @@ class wm_seg:
         mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
         mode_entry.grid(row=9, column=1, sticky="E")
 
-        gpu_mode = Checkbutton(t_model,
-                                 text="GPU:",
-                                 var=self.param_mode)
-        gpu_mode.grid(row=10, sticky="W")
+        #gpu_mode = Checkbutton(t_model,
+        #                         text="GPU:",
+        #                         var=self.param_mode)
+        #gpu_mode.grid(row=10, sticky="W")
 
         gpu_number = Label(t_model, text="GPU number:")
-        gpu_number.grid(row=10, sticky="E")
+        gpu_number.grid(row=10, sticky="W")
         gpu_entry = Entry(t_model, textvariable=self.param_gpu_number)
-        gpu_entry.grid(row=10, column=1, sticky="E")
+        gpu_entry.grid(row=10, column=1, sticky="W")
 
 
         # training parameters
@@ -494,7 +494,7 @@ class wm_seg:
         self.param_batch_size.set(default_config.getint('model', 'batch_size'))
         self.param_net_verbose.set(default_config.get('model', 'net_verbose'))
         self.param_gpu_number.set(default_config.getint('model', 'gpu_number'))
-        self.param_mode.set(default_config.get('model', 'gpu_mode'))
+        # self.param_mode.set(default_config.get('model', 'gpu_mode'))
 
         # post-processing
         self.param_l_min.set(default_config.getint('postprocessing',
@@ -550,7 +550,7 @@ class wm_seg:
         user_config.set('model', 'patience', self.param_patience.get())
         user_config.set('model', 'batch_size', self.param_batch_size.get())
         user_config.set('model', 'net_verbose', self.param_net_verbose.get())
-        user_config.set('model', 'gpu_mode', self.param_mode.get())
+        # user_config.set('model', 'gpu_mode', self.param_mode.get())
         user_config.set('model', 'gpu_number', self.param_gpu_number.get())
 
         # postprocessing parameters

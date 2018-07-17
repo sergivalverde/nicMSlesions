@@ -71,15 +71,25 @@ def define_backend(options):
     """
     Define the library backend and write options
     """
-    if options['backend'] == 'theano':
-        device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-        os.environ['KERAS_BACKEND'] = options['backend']
-        os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-    else:
-        device = str(options['gpu_number']) if options['gpu_mode'] is not None else " "
-        print "DEBUG: ", device
-        os.environ['KERAS_BACKEND'] = 'tensorflow'
-        os.environ["CUDA_VISIBLE_DEVICES"] = device
+    #
+    #    if options['backend'] == 'theano':
+    #        device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
+    #        os.environ['KERAS_BACKEND'] = options['backend']
+    #        os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
+    #    else:
+    #        device = str(options['gpu_number']) if options['gpu_mode'] is not None else " "
+    #        print "DEBUG: ", device
+    #        os.environ['KERAS_BACKEND'] = 'tensorflow'
+    #        os.environ["CUDA_VISIBLE_DEVICES"] = device
+
+
+    # forcing tensorflow
+    device = str(options['gpu_number'])
+    print "DEBUG: ", device
+    os.environ['KERAS_BACKEND'] = 'tensorflow'
+    os.environ["CUDA_VISIBLE_DEVICES"] = device
+
+
 
 
 def train_network(options):

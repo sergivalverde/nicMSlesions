@@ -44,17 +44,17 @@ everywhere where [Tensorflow](https://tensorflow.org) can be installed. Although
 
 # Installation:
 
-First install [Tensorflow](https://tensorflow.org) with using ```pip```:
+First install [Tensorflow](https://tensorflow.org) using ```pip```:
 
 ``` bash
 # clone the repo if necessary
 git clone https://github.com/sergivalverde/nicMSlesions.git
 cd nicMSlesions
 
-# install tensorflow (if you have GPU )
+# install tensorflow (if you have GPU)
 pip install tensorflow-gpu==1.6.0
 
-# if you don't have GPU
+# if you don't have GPU (DO NOT INSTALL BOTH!!)
 pip install tensorflow==1.6.0
 ```
 
@@ -139,9 +139,6 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
     	* **Validation %**: percentage of the training samples that are used to validation. 25% of the samples are used by default.
 
     	* **Test batch size**: number of samples inferred at the same time. This parameter is important and it is directly related with your RAM memory. Reduce this around 5000 on machines with less than 8GB of RAM.
-
-    	* **GPU**: select GPU processing. Set this option `on` for GPU
-          processing.
 
         * **GPU number**: select physical GPU unit in case that more
           than one are available to use. (see `nvidia-smi` for more info about the GPU

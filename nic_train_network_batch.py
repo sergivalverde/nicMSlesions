@@ -19,7 +19,7 @@ import time
 import argparse
 import ConfigParser
 from utils.preprocess import preprocess_scan
-from utils.load_options import load_options
+from utils.load_options import load_options, print_options
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
 
@@ -83,15 +83,23 @@ else:
 # the backend automatically from here in order to use either theano
 # or tensorflow backends
 
-if options['backend'] == 'theano':
-    device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-    os.environ['KERAS_BACKEND'] = options['backend']
-    os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-else:
-    device = str(options['gpu_number']) if options['gpu_mode'] else " "
-    print "DEBUG: ", device
-    os.environ['KERAS_BACKEND'] = 'tensorflow'
-    os.environ["CUDA_VISIBLE_DEVICES"] = device
+# if options['backend'] == 'theano':
+#     device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
+#     os.environ['KERAS_BACKEND'] = options['backend']
+#     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
+# else:
+#     device = str(options['gpu_number']) if options['gpu_mode'] else " "
+#     print "DEBUG: ", device
+#     os.environ['KERAS_BACKEND'] = 'tensorflow'
+#     os.environ["CUDA_VISIBLE_DEVICES"] = device
+
+# forcing tensorflow
+
+device = str(options['gpu_number'])
+print "DEBUG: ", device
+os.environ['KERAS_BACKEND'] = 'tensorflow'
+os.environ["CUDA_VISIBLE_DEVICES"] = device
+
 
 from CNN.base import train_cascaded_model
 from CNN.build_model import cascade_model

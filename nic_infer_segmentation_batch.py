@@ -65,18 +65,27 @@ if options['debug']:
 # or tensorflow backends
 
 
+#
+# if options['backend'] == 'theano':
+#     device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
+#     os.environ['KERAS_BACKEND'] = options['backend']
+#     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
+# else:
+#     device = str(options['gpu_number']) if options['gpu_mode'] else " "
+#     print "DEBUG: ", device
+#     os.environ['KERAS_BACKEND'] = 'tensorflow'
+#     os.environ["CUDA_VISIBLE_DEVICES"] = device
+#
 
-if options['backend'] == 'theano':
-    device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-    os.environ['KERAS_BACKEND'] = options['backend']
-    os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-else:
-    device = str(options['gpu_number']) if options['gpu_mode'] else " "
-    print "DEBUG: ", device
-    os.environ['KERAS_BACKEND'] = 'tensorflow'
-    os.environ["CUDA_VISIBLE_DEVICES"] = device
+# forcing tensorflow
+device = str(options['gpu_number'])
+print "DEBUG: ", device
+os.environ['KERAS_BACKEND'] = 'tensorflow'
+os.environ["CUDA_VISIBLE_DEVICES"] = device
 
-    # set paths taking into account the host OS
+
+
+# set paths taking into account the host OS
 host_os = platform.system()
 if host_os == 'Linux':
     options['niftyreg_path'] = CURRENT_PATH + '/libs/linux/niftyreg'
