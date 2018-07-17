@@ -39,16 +39,29 @@ everywhere where [Tensorflow](https://tensorflow.org) can be installed. Although
 
 * [Git](https://git-scm.com/downloads).
 
-* [CUDA](https://developer.nvidia.com/cuda-zone). If you plan to use nicMSlesions using a GPU, please be sure that your computer has the appropriate [CUDA libraries](https://developer.nvidia.com/cuda-zone) installed.
+* [Tensorflow](https://tensorflow.org). For GPU computing, please be sure that your computer has the appropriate [CUDA libraries](https://developer.nvidia.com/cuda-zone) installed.
 
 
 # Installation:
 
-Once these requirements are met, the rest of python libraries may be easily installed using ```pip```:
+First install [Tensorflow](https://tensorflow.org) with using ```pip```:
 
-```bash
+``` bash
+# clone the repo if necessary
 git clone https://github.com/sergivalverde/nicMSlesions.git
 cd nicMSlesions
+
+# install tensorflow (if you have GPU )
+pip install tensorflow-gpu==1.6.0
+
+# if you don't have GPU
+pip install tensorflow==1.6.0
+```
+
+The rest of python libraries may be
+easily installed also using ```pip```:
+
+```bash
 pip install -r requirements.txt
 ```
 
