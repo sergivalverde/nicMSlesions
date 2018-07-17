@@ -79,7 +79,7 @@ After converting images to [nifti](https://nifti.nimh.nih.gov/), raw images can 
 
 ### Training: ###
 
-The simplest way to train a new model is via the GUI. On a terminal, just run `nicMSlesions.linux` on GNU/Linux or `nicMSlesions.win.bat` on Windows. Click on the training tab.
+The simplest way to train a new model is via the GUI. On a terminal, just run `nicMSlesions_linux` on GNU/Linux or `nicMSlesions_win.bat` on Windows. Click on the training tab.
 
 1. Select training folder. Browse the folder containing a set of training subjects.
 
