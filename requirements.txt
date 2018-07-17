@@ -2,7 +2,7 @@ h5py
 MedPy==0.3.0
 scipy==1.0.0
 Keras==2.0.0
-tensorflow-gpu==1.8.0
+tensorflow-gpu==1.6.0
 nibabel==2.1.0
 numpy==1.13.3
 Pillow==5.0.0

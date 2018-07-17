@@ -5,7 +5,6 @@
 #
 # --------------------------------------------------
 
-
 def load_options(default_config, user_config):
     """
     map options from user input into the default config
@@ -74,7 +73,8 @@ def load_options(default_config, user_config):
     options['save_tmp'] = (default_config.get('database', 'save_tmp'))
 
     # net options
-    options['gpu'] = default_config.getint('model', 'gpu')
+    options['gpu_mode'] = default_config.get('model', 'gpu_mode')
+    options['gpu_number'] = default_config.getint('model', 'gpu_number')
     options['backend'] = default_config.get('model', 'backend')
     options['pretrained'] = default_config.get('model', 'pretrained')
     options['min_th'] = 0.5
@@ -132,7 +132,6 @@ def print_options(options):
     """
     print options
     """
-
     print "--------------------------------------------------"
     print " configuration options:"
     print "--------------------------------------------------"

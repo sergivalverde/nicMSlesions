@@ -6,7 +6,6 @@ from keras import backend as K
 from keras.models import Model
 K.set_image_dim_ordering('th')
 
-
 def get_network(options):
     """
     CNN model for MS lesion segmentation. Based on the model proposed on:

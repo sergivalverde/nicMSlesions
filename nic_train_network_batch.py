@@ -59,6 +59,9 @@ user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 options = load_options(default_config, user_config)
 options['tmp_folder'] = CURRENT_PATH + '/tmp'
 
+if options['debug']:
+    print_options(options)
+
 # set paths taking into account the host OS
 host_os = platform.system()
 if host_os == 'Linux':
@@ -81,11 +84,11 @@ else:
 # or tensorflow backends
 
 if options['backend'] == 'theano':
-    device = 'cuda' + str(options['gpu']) if options['gpu'] is not None else 'cpu'
+    device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
     os.environ['KERAS_BACKEND'] = options['backend']
     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
 else:
-    device = str(options['gpu']) if options['gpu'] is not None else " "
+    device = str(options['gpu_number']) if options['gpu_mode'] else " "
     print "DEBUG: ", device
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ["CUDA_VISIBLE_DEVICES"] = device
@@ -153,6 +156,7 @@ print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
 # --------------------------------------------------
 model = cascade_model(options)
 model = train_cascaded_model(model, train_x_data, train_y_data,  options)
+
 print "> INFO: training time:", round(time.time() - seg_time), "sec"
 print "> INFO: total pipeline time: ", round(time.time() - total_time), "sec"
 print "> INFO: All processes have been finished. Have a good day!"

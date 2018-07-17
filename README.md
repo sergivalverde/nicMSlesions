@@ -18,8 +18,9 @@ of supervised deep learning on the fairly amount of yet unlabeled data
 more information.)
 
 NicMSlesions graphical user interface (GUI) is inspired on the classical [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki) software, a widely well-known neuro-imaging toolbox. As some of the most common tools in FSL, nicMSlesions can be run both under a GUI or via scripting.
-n
-NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possible to run it on CPU, it is based on a set of 3D convolutional layers, so using a GPU with [cuda](https://developer.nvidia.com/cuda-zone) capabilities is highnly recommended.
+
+NicMSlesions has been tested only on GNU/Linux systems but should work
+everywhere where [Tensorflow](https://tensorflow.org) can be installed. Although is possible to run it on CPU, it is based on a set of 3D convolutional layers, so using a GPU with [cuda](https://developer.nvidia.com/cuda-zone) capabilities is highnly recommended.
 
 # Requirements:
 
@@ -39,10 +40,6 @@ NicMSlesions has been tested on Windows and GNU/Linux systems. Although is possi
 * [Git](https://git-scm.com/downloads).
 
 * [CUDA](https://developer.nvidia.com/cuda-zone). If you plan to use nicMSlesions using a GPU, please be sure that your computer has the appropriate [CUDA libraries](https://developer.nvidia.com/cuda-zone) installed.
-    * On Windows, [this guide](http://www.islandman93.com/2016/04/tutorial-theano-install-on-windows-7-8.html) shows how to install Theano and CUDA.
-	* On GNU/Linux, [this guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/#axzz4WNL7OgLr) is an excellent resource to install CUDA on a different range of distributions.
-
-	In the case of CPU, be sure that the fast linear algebra [libraries](http://lasagne.readthedocs.io/en/latest/user/installation.html#numpy-scipy-blas) are also installed.
 
 
 # Installation:
@@ -130,7 +127,12 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
 
     	* **Test batch size**: number of samples inferred at the same time. This parameter is important and it is directly related with your RAM memory. Reduce this around 5000 on machines with less than 8GB of RAM.
 
-    	* **Mode**: select GPU or CPU processing. Set this options to `cudaX` where `X` is the cuda device to use (`cuda0` in most of the cases). Set the parameter to `cpu` otherwise.
+    	* **GPU**: select GPU processing. Set this option `on` for GPU
+          processing.
+
+        * **GPU number**: select physical GPU unit in case that more
+          than one are available to use. (see `nvidia-smi` for more info about the GPU
+          number)
 
     	* **Verbosity**: set the output verbosity of the network
           model. Setting this parameter to 1 prints the training
@@ -209,7 +211,8 @@ max_epochs = 200
 patience = 25
 batch_size = 50000
 net_verbose = 0
-mode = cuda0
+gpu = True
+gpu_number = 0
 
 [postprocessing]
 t_bin = 0.8

@@ -17,7 +17,7 @@ import sys
 import platform
 import time
 import ConfigParser
-from utils.load_options import load_options
+from utils.load_options import load_options, print_options
 from utils.preprocess import preprocess_scan
 from utils.postprocess import invert_registration
 from shutil import copyfile
@@ -57,21 +57,24 @@ user_config.read(os.path.join(CURRENT_PATH, 'config', 'configuration.cfg'))
 # read user's configuration file
 options = load_options(default_config, user_config)
 
+if options['debug']:
+    print_options(options)
 
 # set GPU mode from the configuration file. Trying to update
 # the backend automatically from here in order to use either theano
 # or tensorflow backends
 
+
+
 if options['backend'] == 'theano':
-    device = 'cuda' + str(options['gpu']) if options['gpu'] is not None else 'cpu'
+    device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
     os.environ['KERAS_BACKEND'] = options['backend']
     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
 else:
-    device = str(options['gpu']) if options['gpu'] is not None else " "
+    device = str(options['gpu_number']) if options['gpu_mode'] else " "
     print "DEBUG: ", device
     os.environ['KERAS_BACKEND'] = 'tensorflow'
     os.environ["CUDA_VISIBLE_DEVICES"] = device
-
 
     # set paths taking into account the host OS
 host_os = platform.system()

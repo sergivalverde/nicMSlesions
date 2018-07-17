@@ -67,6 +67,20 @@ def get_config():
 
     return options
 
+def define_backend(options):
+    """
+    Define the library backend and write options
+    """
+    if options['backend'] == 'theano':
+        device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
+        os.environ['KERAS_BACKEND'] = options['backend']
+        os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
+    else:
+        device = str(options['gpu_number']) if options['gpu_mode'] is not None else " "
+        print "DEBUG: ", device
+        os.environ['KERAS_BACKEND'] = 'tensorflow'
+        os.environ["CUDA_VISIBLE_DEVICES"] = device
+
 
 def train_network(options):
     """
@@ -76,18 +90,11 @@ def train_network(options):
     # set GPU mode from the configuration file. Trying to update
     # the backend automatically from here in order to use either theano
     # or tensorflow backends
-    if options['backend'] == 'theano':
-        device = 'cuda' + str(options['gpu']) if options['gpu'] is not None else 'cpu'
-        os.environ['KERAS_BACKEND'] = options['backend']
-        os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-    else:
-        device = str(options['gpu']) if options['gpu'] is not None else " "
-        print "DEBUG: ", device
-        os.environ['KERAS_BACKEND'] = 'tensorflow'
-        os.environ["CUDA_VISIBLE_DEVICES"] = device
-
     from CNN.base import train_cascaded_model
     from CNN.build_model import cascade_model
+
+    # define the training backend
+    define_backend(options)
 
     scan_list = os.listdir(options['train_folder'])
     scan_list.sort()
@@ -106,6 +113,7 @@ def train_network(options):
         current_folder = os.path.join(options['train_folder'], scan)
         options['tmp_folder'] = os.path.normpath(os.path.join(current_folder,
                                                               'tmp'))
+
         # preprocess scan
         preprocess_scan(current_folder, options)
 
@@ -150,12 +158,8 @@ def infer_segmentation(options):
     Infer segmentation given the input options passed as parameters
     """
 
-    # set GPU mode from the configuration file. So, this has to be updated before calling
-    # the CNN libraries if the default config "~/.theanorc" has to be replaced.
-    if options['mode'].find('cuda') == -1 and options['mode'].find('gpu') == -1:
-        os.environ['THEANO_FLAGS']='mode=FAST_RUN,device=cpu,floatX=float32,optimizer=fast_compile'
-    else:
-        os.environ['THEANO_FLAGS']='mode=FAST_RUN,device='+options['mode'] +',floatX=float32,optimizer=fast_compile'
+    # define the training backend
+    define_backend(options)
 
     from CNN.base import test_cascaded_model
     from CNN.build_model import cascade_model

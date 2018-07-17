@@ -111,7 +111,8 @@ class wm_seg:
         self.param_t_bin = DoubleVar()
         self.param_l_min = IntVar()
         self.param_min_error = DoubleVar()
-        self.param_mode = IntVar()
+        self.param_mode = BooleanVar()
+        self.param_gpu_number = IntVar()
 
         # load the default configuration from the conf file
         self.load_default_configuration()
@@ -401,15 +402,20 @@ class wm_seg:
         batchsize_entry = Entry(t_model, textvariable=self.param_batch_size)
         batchsize_entry.grid(row=8, column=1, sticky="E")
 
-        mode_label = Label(t_model, text="GPU number:")
+        mode_label = Label(t_model, text="Verbosity:")
         mode_label.grid(row=9, sticky="W")
-        mode_entry = Entry(t_model, textvariable=self.param_mode)
+        mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
         mode_entry.grid(row=9, column=1, sticky="E")
 
-        mode_label = Label(t_model, text="Verbosity:")
-        mode_label.grid(row=11, sticky="W")
-        mode_entry = Entry(t_model, textvariable=self.param_net_verbose)
-        mode_entry.grid(row=11, column=1, sticky="E")
+        gpu_mode = Checkbutton(t_model,
+                                 text="GPU:",
+                                 var=self.param_mode)
+        gpu_mode.grid(row=10, sticky="W")
+
+        gpu_number = Label(t_model, text="GPU number:")
+        gpu_number.grid(row=10, sticky="E")
+        gpu_entry = Entry(t_model, textvariable=self.param_gpu_number)
+        gpu_entry.grid(row=10, column=1, sticky="E")
 
 
         # training parameters
@@ -481,13 +487,14 @@ class wm_seg:
 
         # model parameters
         self.param_net_folder = os.path.join(self.current_folder, 'nets')
-        self.param_model_tag.set(default_config.get('model', 'name'))
+        self.param_net_name.set(default_config.get('model', 'name'))
         self.param_train_split.set(default_config.getfloat('model', 'train_split'))
         self.param_max_epochs.set(default_config.getint('model', 'max_epochs'))
         self.param_patience.set(default_config.getint('model', 'patience'))
         self.param_batch_size.set(default_config.getint('model', 'batch_size'))
         self.param_net_verbose.set(default_config.get('model', 'net_verbose'))
-        self.param_mode.set(default_config.getint('model', 'gpu'))
+        self.param_gpu_number.set(default_config.getint('model', 'gpu_number'))
+        self.param_mode.set(default_config.get('model', 'gpu_mode'))
 
         # post-processing
         self.param_l_min.set(default_config.getint('postprocessing',
@@ -536,14 +543,15 @@ class wm_seg:
                         self.param_fract_negatives.get())
         # model parameters
         user_config.add_section('model')
-        user_config.set('model', 'name', self.param_model_tag.get())
+        user_config.set('model', 'name', self.param_net_name.get())
         user_config.set('model', 'pretrained', self.param_pretrained)
         user_config.set('model', 'train_split', self.param_train_split.get())
         user_config.set('model', 'max_epochs', self.param_max_epochs.get())
         user_config.set('model', 'patience', self.param_patience.get())
         user_config.set('model', 'batch_size', self.param_batch_size.get())
         user_config.set('model', 'net_verbose', self.param_net_verbose.get())
-        user_config.set('model', 'gpu', self.param_mode.get())
+        user_config.set('model', 'gpu_mode', self.param_mode.get())
+        user_config.set('model', 'gpu_number', self.param_gpu_number.get())
 
         # postprocessing parameters
         user_config.add_section('postprocessing')
@@ -631,7 +639,7 @@ class wm_seg:
             return
         if self.test_task is None:
             self.inferenceBtn.config(state='disabled')
-            self.param_model_tag.set(self.param_inference_model.get())
+            self.param_net_name.set(self.param_inference_model.get())
             self.param_use_pretrained_model.set(False)
             self.write_user_configuration()
             print "\n-----------------------"
@@ -666,7 +674,7 @@ class wm_seg:
             print "\n-----------------------"
             print "Running configuration:"
             print "-----------------------"
-            print "Train model:", self.param_model_tag.get()
+            print "Train model:", self.param_net_name.get()
             print "Training folder:", self.param_training_folder.get(), "\n"
 
             print "Method info:"
