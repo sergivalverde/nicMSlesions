@@ -141,8 +141,8 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
     	* **Test batch size**: number of samples inferred at the same time. This parameter is important and it is directly related with your RAM memory. Reduce this around 5000 on machines with less than 8GB of RAM.
 
         * **GPU number**: select physical GPU unit in case that more
-          than one are available to use. (see `nvidia-smi` for more info about the GPU
-          number)
+          than one are available to use. Ssee `nvidia-smi` for more info about the GPU
+          number. **Change this value only if a GPU is used**.
 
     	* **Verbosity**: set the output verbosity of the network
           model. Setting this parameter to 1 prints the training
