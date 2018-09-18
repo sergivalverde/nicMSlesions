@@ -28,8 +28,8 @@ RUN conda update -y conda
 # install CNN related packages
 ADD requirements.txt /requirements.txt
 RUN conda install numpy scipy mkl
-RUN conda install theano pygpu
 RUN pip install pip --upgrade
+RUN pip install tensorflow-gpu==1.6.0
 RUN pip install -r /requirements.txt
 
 # create a docker user
@@ -41,7 +41,6 @@ RUN mkdir $HOME/src
 RUN mkdir /data
 ENV PATH=/$HOME/src:${PATH}
 ADD __init__.py $HOME/src/
-ADD .theanorc $HOME/.theanorc
 ADD .keras $HOME/.keras
 ADD app.py $HOME/src/
 ADD cnn_scripts.py $HOME/src/

@@ -305,7 +305,7 @@ Experimentally, if the docker is run under GNU/Linux, the GUI display
 can be easily imported as:
 
 ``` bash
-run nvidia-docker -ti  \
+nvidia-docker -ti  \
 -e DISPLAY=$DISPLAY \
 -u="docker" \
 -v /tmp/.X11-unix:/tmp/.X11-unix \
