@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #   MS lesion segmentation pipeline
 # ---------------------------------
 #   - incorporates:
@@ -10,7 +10,8 @@
 #
 #  Sergi Valverde 2017
 #  svalverde@eia.udg.edu
-# ------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 import os
 import sys
@@ -19,7 +20,7 @@ import time
 import argparse
 import ConfigParser
 from utils.preprocess import preprocess_scan
-from utils.load_options import load_options
+from utils.load_options import load_options, print_options
 
 os.system('cls' if platform.system() == 'Windows' else 'clear')
 
@@ -62,6 +63,11 @@ options['tmp_folder'] = CURRENT_PATH + '/tmp'
 if options['debug']:
     print_options(options)
 
+# tensorflow backend
+device = str(options['gpu_number'])
+print "DEBUG: ", device
+os.environ['KERAS_BACKEND'] = 'tensorflow'
+os.environ["CUDA_VISIBLE_DEVICES"] = device
 
 # set paths taking into account the host OS
 host_os = platform.system()
@@ -79,22 +85,8 @@ else:
     print "The OS system", host_os, "is not currently supported."
     exit()
 
-# set GPU mode from the configuration file. Trying to update
-# the backend automatically from here in order to use either theano
-# or tensorflow backends
-
-if options['backend'] == 'theano':
-    device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-    os.environ['KERAS_BACKEND'] = options['backend']
-    os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-else:
-    device = str(options['gpu_number']) if options['gpu_mode'] else " "
-    print "DEBUG: ", device
-    os.environ['KERAS_BACKEND'] = 'tensorflow'
-    os.environ["CUDA_VISIBLE_DEVICES"] = device
-
 from CNN.base import train_cascaded_model, test_cascaded_model
-from CNN.build_model_nolearn import cascade_model
+from CNN.build_model import cascade_model
 
 if container:
     options['train_folder'] = os.path.normpath(
@@ -163,7 +155,7 @@ for scan in scan_list:
     options['test_scan'] = scan
 
     # train the model for the current scan
-    print "> CNN: training net with %d subjects" %(len(train_x_data.keys()))
+    print "> CNN: training net with %d subjects" % (len(train_x_data.keys()))
 
     # --------------------------------------------------
     # initialize the CNN and train the classifier
@@ -172,7 +164,8 @@ for scan in scan_list:
     model = train_cascaded_model(model, train_x_data, train_y_data,  options)
 
     print "> INFO: training time:", round(time.time() - seg_time), "sec"
-    print "> INFO: total pipeline time: ", round(time.time() - total_time), "sec"
+    print "> INFO: total pipeline time: ", \
+        round(time.time() - total_time), "sec"
 
     # --------------------------------------------------
     # test the current scan

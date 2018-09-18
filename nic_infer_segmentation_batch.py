@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------
 #   MS lesion segmentation pipeline
 # ---------------------------------
 #   - incorporates:
@@ -9,7 +9,7 @@
 #
 #  Sergi Valverde 2017
 #  svalverde@eia.udg.edu
-# ------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------
 
 import os
 import argparse
@@ -60,30 +60,11 @@ options = load_options(default_config, user_config)
 if options['debug']:
     print_options(options)
 
-# set GPU mode from the configuration file. Trying to update
-# the backend automatically from here in order to use either theano
-# or tensorflow backends
-
-
-#
-# if options['backend'] == 'theano':
-#     device = 'cuda' + str(options['gpu_number']) if options['gpu_mode'] else 'cpu'
-#     os.environ['KERAS_BACKEND'] = options['backend']
-#     os.environ['THEANO_FLAGS'] = 'mode=FAST_RUN,device=' + device + ',floatX=float32,optimizer=fast_compile'
-# else:
-#     device = str(options['gpu_number']) if options['gpu_mode'] else " "
-#     print "DEBUG: ", device
-#     os.environ['KERAS_BACKEND'] = 'tensorflow'
-#     os.environ["CUDA_VISIBLE_DEVICES"] = device
-#
-
-# forcing tensorflow
+# tensorflow backend
 device = str(options['gpu_number'])
 print "DEBUG: ", device
 os.environ['KERAS_BACKEND'] = 'tensorflow'
 os.environ["CUDA_VISIBLE_DEVICES"] = device
-
-
 
 # set paths taking into account the host OS
 host_os = platform.system()
@@ -99,7 +80,6 @@ elif host_os == 'Windows':
     options['test_slices'] = 256
 else:
     "> ERROR: The OS system", host_os, "is not currently supported"
-
 
 from CNN.base import test_cascaded_model
 from CNN.build_model import cascade_model
