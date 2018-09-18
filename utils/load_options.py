@@ -5,6 +5,7 @@
 #
 # --------------------------------------------------
 
+
 def load_options(default_config, user_config):
     """
     map options from user input into the default config
@@ -33,14 +34,14 @@ def load_options(default_config, user_config):
                              default_config.get('database',
                                                 'flair_tags').split(',')]
     options['t1_tags'] = [el.strip() for el in
-                             default_config.get('database',
-                                                't1_tags').split(',')]
+                          default_config.get('database',
+                                             't1_tags').split(',')]
     options['mod3_tags'] = [el.strip() for el in
-                             default_config.get('database',
-                                                'mod3_tags').split(',')]
+                            default_config.get('database',
+                                               'mod3_tags').split(',')]
     options['mod4_tags'] = [el.strip() for el in
-                             default_config.get('database',
-                                                'mod4_tags').split(',')]
+                            default_config.get('database',
+                                               'mod4_tags').split(',')]
     options['roi_tags'] = [el.strip() for el in
                            default_config.get('database',
                                               'roi_tags').split(',')]
@@ -73,9 +74,8 @@ def load_options(default_config, user_config):
     options['save_tmp'] = (default_config.get('database', 'save_tmp'))
 
     # net options
-    #options['gpu_mode'] = default_config.get('model', 'gpu_mode')
+    # options['gpu_mode'] = default_config.get('model', 'gpu_mode')
     options['gpu_number'] = default_config.getint('model', 'gpu_number')
-    options['backend'] = default_config.get('model', 'backend')
     options['pretrained'] = default_config.get('model', 'pretrained')
     options['min_th'] = 0.5
     options['fully_convolutional'] = False
@@ -105,7 +105,7 @@ def load_options(default_config, user_config):
                                                       'balanced_training')
 
     options['fract_negative_positive'] = default_config.getfloat('train',
-                                                                'fraction_negatives')
+                                                                 'fraction_negatives')
     options['num_layers'] = None
 
     options = parse_values_to_types(options)
