@@ -156,13 +156,18 @@ def test_cascaded_model(model, test_x_data, options):
                    options,
                    save_nifti=save_nifti)
 
-    # second network
-    options['test_name'] = options['experiment'] + '_prob_1.nii.gz'
-    t2 = test_scan(model[1],
-                   test_x_data,
-                   options,
-                   save_nifti=True,
-                   candidate_mask=(t1 > 0.8))
+    # assert that the second network has voxels to infer
+    t1 = t1 > 0.8
+    if np.sum(t1) > 0:
+        # second network
+        options['test_name'] = options['experiment'] + '_prob_1.nii.gz'
+        t2 = test_scan(model[1],
+                       test_x_data,
+                       options,
+                       save_nifti=True,
+                       candidate_mask=(t1))
+    else:
+        t2 = np.zeros(t1.shape)
 
     # postprocess the output segmentation
     # obtain the orientation from the first scan used for testing
