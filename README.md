@@ -351,6 +351,12 @@ year = {2018}
 
 # Bibliography:
 
-1. Valverde, S., Salem, M., Cabezas, M., Pareto, D., Vilanova, J. C., Ramió-Torrentà, L., … Lladó, X. (2018). One-shot domain adaptation in multiple sclerosis lesion segmentation using convolutional neural networks, 1–13. Retrieved from http://arxiv.org/abs/1805.12415
+1. Valverde, S., Salem, M., Cabezas, M., Pareto, D., Vilanova, J. C.,
+   Ramió-Torrentà, L., … Lladó, X. (2018). One-shot domain adaptation
+   in multiple sclerosis lesion segmentation using convolutional
+   neural networks, Neuroimage: Clinical, 2018, 101638. ![doi](https://doi.org/10.1016/j.nicl.2018.101638)
 
-2. Valverde, S., Cabezas, M., Roura, E., González-Villà, S., Pareto, D., Vilanova, J. C., … Lladó, X. (2017). Improving automated multiple sclerosis lesion segmentation with a cascaded 3D convolutional neural network approach. NeuroImage, 155, 159–168.
+2. Valverde, S., Cabezas, M., Roura, E., González-Villà, S., Pareto,
+   D., Vilanova, J. C., … Lladó, X. (2017). Improving automated
+   multiple sclerosis lesion segmentation with a cascaded 3D
+   convolutional neural network approach. NeuroImage, 155, 159–168 . ![doi](10.1016/j.neuroimage.2017.04.034)
