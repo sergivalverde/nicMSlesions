@@ -270,8 +270,7 @@ git pull origin master
 Additionally, NicMSlesions can be updated from the same GUI as
 by cliking the update button on the About pop-up:
 
-	![image](./media/update.gif)
-
+![image](./media/update.gif)
 
 # Docker:
 
