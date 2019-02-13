@@ -334,17 +334,15 @@ If you use this software, please cite it as:
 
 ```
 
-@article{Valverde2018,
-archivePrefix = {arXiv},
-arxivId = {1805.12415},
-author = {Valverde, Sergi and Salem, Mostafa and Cabezas, Mariano and Pareto, Deborah and Vilanova, Joan C. and Rami{\'{o}}-Torrent{\`{a}}, Llu{\'{i}}s and Rovira, {\`{A}}lex and Salvi, Joaquim and Oliver, Arnau and Llad{\'{o}}, Xavier},
-eprint = {1805.12415},
-file = {:tmp/mozilla{\_}s0/1805.12415.pdf:pdf},
-keywords = {automatic lesion segmentation,brain,convolutional neural networks,mri,multiple sclerosis},
-pages = {1--13},
-title = {{One-shot domain adaptation in multiple sclerosis lesion segmentation using convolutional neural networks}},
-url = {http://arxiv.org/abs/1805.12415},
-year = {2018}
+@article{VALVERDE2018101638,
+title = "One-shot domain adaptation in multiple sclerosis lesion segmentation using convolutional neural networks",
+journal = "NeuroImage: Clinical",
+pages = "101638",
+year = "2018",
+issn = "2213-1582",
+doi = "https://doi.org/10.1016/j.nicl.2018.101638",
+url = "http://www.sciencedirect.com/science/article/pii/S2213158218303863",
+author = "Sergi Valverde and Mostafa Salem and Mariano Cabezas and Deborah Pareto and Joan C. Vilanova and Lluís Ramió-Torrentà and Àlex Rovira and Joaquim Salvi and Arnau Oliver and Xavier Lladó",
 }
 
 ```
