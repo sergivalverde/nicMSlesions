@@ -22,24 +22,28 @@ def get_mode(input_data):
 
     return mode
 
-
 def parse_input_masks(current_folder, options):
     """
     identify input image masks parsing image name labels
+    Check for input modalities. If lesiomask is not found, the mask
+    is ignored
 
     """
 
-    if options['task'] == 'training':
-        modalities = options['modalities'][:] + ['lesion']
-        image_tags = options['image_tags'][:] + options['roi_tags'][:]
-    else:
-        modalities = options['modalities'][:]
-        image_tags = options['image_tags'][:]
+    # if options['task'] == 'training':
+    #     modalities = options['modalities'][:] + ['lesion']
+    #     image_tags = options['image_tags'][:] + options['roi_tags'][:]
+    # else:
+    #     modalities = options['modalities'][:]
+    #     image_tags = options['image_
+
+    modalities = options['modalities'][:]
+    image_tags = options['image_tags'][:]
 
     if options['debug']:
         print "> DEBUG:", "number of input sequences to find:", len(modalities)
-    scan = options['tmp_scan']
 
+    scan = options['tmp_scan']
     print "> PRE:", scan, "identifying input modalities"
 
     found_modalities = 0
@@ -79,6 +83,41 @@ def parse_input_masks(current_folder, options):
         time.sleep(1)
         os.kill(os.getpid(), signal.SIGTERM)
 
+    # check if lesion mask exists, and if not, save an empty mask
+    # with same shape as T1-w
+
+    t = options['roi_tags'][0]
+    m = 'lesion'
+
+    masks = [mask for mask in os.listdir(current_folder) if mask.find('.nii') > 0]
+    found_mod = [mask.find(t) if mask.find(t) >= 0
+                     else np.Inf for mask in masks]
+
+    if found_mod[np.argmin(found_mod)] is not np.Inf:
+        index = np.argmin(found_mod)
+        # generate a new output image modality
+        # check for extra dimensions
+        input_path = os.path.join(current_folder, masks[index])
+        input_sequence = nib.load(input_path)
+        input_image = np.squeeze(input_sequence.get_data())
+        output_sequence = nib.Nifti1Image(input_image,
+                                          affine=input_sequence.affine)
+        output_sequence.to_filename(
+            os.path.join(options['tmp_folder'], m + '.nii.gz'))
+
+        if options['debug']:
+            print "    --> ", masks[index], "as", m, "image"
+            masks.remove(masks[index])
+    else:
+        ref_scan = nib.load(os.path.join(current_folder, 'tmp', 'T1.nii.gz'))
+        input_image = np.zeros_like(ref_scan.get_data())
+        output_sequence = nib.Nifti1Image(input_image,
+                                          affine=ref_scan.affine)
+        output_sequence.to_filename(
+            os.path.join(options['tmp_folder'], m + '.nii.gz'))
+        if options['debug']:
+            print "    -->  Empty mask as", m, "image"
+            masks.remove(masks[index])
 
 def register_masks(options):
     """
@@ -235,7 +274,7 @@ def preprocess_scan(current_folder, options):
             pass
 
     # --------------------------------------------------
-    # find modalities
+    # find modalities and move everything to a tmp folder
     # --------------------------------------------------
     id_time = time.time()
     parse_input_masks(current_folder, options)

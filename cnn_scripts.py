@@ -91,7 +91,6 @@ def define_backend(options):
 
 
 
-
 def train_network(options):
     """
     Train the CNN network given the options passed as parameter
@@ -100,6 +99,7 @@ def train_network(options):
     # set GPU mode from the configuration file. Trying to update
     # the backend automatically from here in order to use either theano
     # or tensorflow backends
+
     from CNN.base import train_cascaded_model
     from CNN.build_model import cascade_model
 

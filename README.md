@@ -156,11 +156,10 @@ The simplest way to train a new model is via the GUI. On a terminal, just run `n
           set to `True`, the same number of positive (lesion) and
           negative (healthy) samples are used.
 
-        * **Fraction negative / positive samples**: Values higher than
+        * **Fraction negative / positive samples**: In case that an
+          unbalanced training wants to be perfromed, values higher than
           1 sets the fraction of sampled negative samples with respect
-          to lesion samples. This parameter is no applied if the
-          `balanced dataset` parameter is also set.
-
+          to lesion samples.
 
     * Post-processing:
 
@@ -267,6 +266,12 @@ Updating NicMSlesions to a new version can be done both via the command line pul
 cd /where/nicMSlesions/lives
 git pull origin master
 ```
+
+Additionally, NicMSlesions can be updated from the same GUI as
+by cliking the update button on the About pop-up:
+
+	![image](./media/update.gif)
+
 
 # Docker:
 

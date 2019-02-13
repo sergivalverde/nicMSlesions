@@ -94,7 +94,7 @@ class wm_seg:
         self.param_num_layers = IntVar()
         self.param_net_name = StringVar()
         self.param_net_name.set('None')
-        self.param_balanced_dataset = StringVar()
+        self.param_balanced_dataset = BooleanVar()
         self.param_fract_negatives = DoubleVar()
 
         # model parameters
@@ -129,7 +129,7 @@ class wm_seg:
         print "# MS WM lesion segmentation                      #"
         print "#                                                #"
         print "# -------------------------------                #"
-        print "# (c) Sergi Valverde 2018                        #"
+        print "# (c) Sergi Valverde 2019                        #"
         print "# Neuroimage Computing Group                     #"
         print "# -------------------------------                #"
         print "##################################################\n"
@@ -422,15 +422,20 @@ class wm_seg:
         tr_model = LabelFrame(t, text="Training:")
         tr_model.grid(row=12, sticky="EW")
 
-        balanced_label = Label(tr_model, text="Balanced dataset:    ")
-        balanced_label.grid(row=13, sticky="W")
-        balanced_entry = Entry(tr_model, textvariable=self.param_balanced_dataset)
-        balanced_entry.grid(row=13, column=1, sticky="E")
+        balanced_entry = Checkbutton(tr_model,
+                                     text="Balanced training",
+                                     command=self.check_train,
+                                     var=self.param_balanced_dataset)
+        balanced_entry.grid(row=13, sticky="W")
 
-        fraction_label = Label(tr_model, text="Fraction negative/positives: ")
+
+        fraction_label = Label(tr_model,
+                               text="Fraction negative/positives: ")
         fraction_label.grid(row=14, sticky="W")
-        fraction_entry = Entry(tr_model, textvariable=self.param_fract_negatives)
-        fraction_entry.grid(row=14, column=1, sticky="E")
+        self.fraction_entry = Entry(tr_model,
+                                    state='disabled',
+                                    textvariable=self.param_fract_negatives)
+        self.fraction_entry.grid(row=14, column=1, sticky="E")
 
         # postprocessing parameters
         t_post = LabelFrame(t, text="Post-processing:  ")
@@ -450,6 +455,15 @@ class wm_seg:
         vol_min_entry = Entry(t_post, textvariable=self.param_min_error)
         vol_min_entry.grid(row=18, column=1, sticky="E")
 
+
+    def check_train(self):
+        """
+        Show fraction on negative / positive only when balanced training is unset
+        """
+        if self.fraction_entry['state'] == 'disabled':
+            self.fraction_entry['state'] = 'normal'
+        else:
+            self.fraction_entry['state'] = 'disabled'
 
     def load_default_configuration(self):
         """
@@ -740,7 +754,7 @@ class wm_seg:
         imglabel.image = img
         imglabel.grid(row=1, column=1, padx=10, pady=10)
         group_name = Label(t,
-                           text="Copyright Sergi Valverde (2018-) \n " +
+                           text="Copyright Sergi Valverde (2019-) \n " +
                            "NeuroImage Computing Group")
         group_name.grid(row=3, column=1)
         group_link = Label(t, text=r"http://atc.udg.edu/nic",
@@ -755,15 +769,15 @@ class wm_seg:
         license_label = Label(t, text=license_content)
         license_label.grid(row=5, column=1, padx=20, pady=20)
 
-        # if self.container is False:
-        #     # check version and updates
-        #     version_number = Label(t, text="commit: " + self.commit_version)
-        #     version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
-        #
-        #     self.check_link = Button(t,
-        #                         text="Check for updates",
-        #                         command=self.check_update)
-        #     self.check_link.grid(row=7, column=1)
+        if self.container is False:
+             # check version and updates
+             version_number = Label(t, text="commit: " + self.commit_version)
+             version_number.grid(row=6, column=1, padx=20, pady=(1, 1))
+
+             self.check_link = Button(t,
+                                 text="Check for updates",
+                                 command=self.check_update)
+             self.check_link.grid(row=7, column=1)
 
     def process_container_queue(self):
         """
