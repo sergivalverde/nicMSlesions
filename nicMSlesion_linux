@@ -5,7 +5,7 @@ APP_PATH=`dirname "$0"`
 
 # run nic_mslesions
 cd $APP_PATH
-python app.py &
+/usr/bin/python2 app.py &
 
 # return back to the current folder
 cd $CURRENT_PATH
