@@ -1,7 +1,0 @@
-h5py
-MedPy==0.3.0
-scipy==1.0.0
-Keras==2.0.0
-nibabel==2.1.0
-numpy==1.22.0
-Pillow==9.0.1
